@@ -4,7 +4,7 @@ import ru.practicum.ViewStatsDto;
 import ru.practicum.model.ViewStats;
 
 public class ViewStatsMapper {
-    public static ViewStatsDto toDto(ViewStats stats){
+    public static ViewStatsDto toDto(ViewStats stats) {
         return ViewStatsDto.builder()
                 .app(stats.getApp())
                 .hits(stats.getHits())

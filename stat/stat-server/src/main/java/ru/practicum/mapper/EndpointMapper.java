@@ -5,7 +5,7 @@ import ru.practicum.EndpointHitDto;
 import ru.practicum.model.EndpointHit;
 
 public class EndpointMapper {
-    public static EndpointHitDto toDto(EndpointHit hit){
+    public static EndpointHitDto toDto(EndpointHit hit) {
         return EndpointHitDto.builder()
                 .id(hit.getId())
                 .app(hit.getApp())
@@ -15,7 +15,7 @@ public class EndpointMapper {
                 .build();
     }
 
-    public static EndpointHit fromDto(EndpointHitDto hitDto){
+    public static EndpointHit fromDto(EndpointHitDto hitDto) {
         return EndpointHit.builder()
                 .id(hitDto.getId())
                 .app(hitDto.getApp())
