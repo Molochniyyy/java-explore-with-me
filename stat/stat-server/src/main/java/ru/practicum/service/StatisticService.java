@@ -25,6 +25,15 @@ public class StatisticService {
     }
 
     public List<ViewStatsDto> getStatistic(LocalDateTime start, LocalDateTime end, List<String> uris, boolean unique) {
+        if (uris == null || uris.isEmpty()) {
+            if (unique) {
+                return statisticRepository.findWithoutUrisUnique(end, start).stream()
+                        .map(viewStatsMapper::toDto).collect(Collectors.toList());
+            } else {
+                return statisticRepository.findWithoutUris(end, start).stream()
+                        .map(viewStatsMapper::toDto).collect(Collectors.toList());
+            }
+        }
         if (unique) {
             return statisticRepository.findStatWithUnique(uris, start, end).stream()
                     .map(viewStatsMapper::toDto).collect(Collectors.toList());
