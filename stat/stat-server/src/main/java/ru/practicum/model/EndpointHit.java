@@ -26,7 +26,7 @@ public class EndpointHit {
     private String uri;
     @Column(nullable = false)
     private String ip;
-    @Column(name = "created", nullable = false)
+    @Column(name = "TIMESTAMP", nullable = false)
     private LocalDateTime timestamp;
 
     @Override
