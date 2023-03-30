@@ -34,7 +34,7 @@ public class StatisticController {
                                       LocalDateTime start,
                                       @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
                                       LocalDateTime end,
-                                      @RequestParam List<String> uris,
+                                      @RequestParam(required = false) List<String> uris,
                                       @RequestParam(defaultValue = "false") boolean unique) {
         log.info("Запрос на получение статистики");
         return statisticService.getStatistic(start, end, uris, unique);
