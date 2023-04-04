@@ -1,40 +1,40 @@
-package ru.practicum.compilations.model;
+package ru.practicum.requests.model;
 
 import lombok.*;
 import org.hibernate.Hibernate;
+import org.hibernate.annotations.CreationTimestamp;
 import ru.practicum.events.model.Event;
 
 import javax.persistence.*;
-import java.util.Collection;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Entity
-@Table(name = "compilations")
-@AllArgsConstructor
-@NoArgsConstructor
+@Table(name = "REQUESTS")
 @Getter
 @Setter
 @ToString
-public class Compilation {
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class ParticipationRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
-    @ManyToMany
-    @JoinTable(name = "COMPILATION_EVENT",
-            joinColumns = @JoinColumn(name = "COMPILATION_ID"),
-            inverseJoinColumns = @JoinColumn(name = "EVENT_ID"))
-    @ToString.Exclude
-    Collection<Event> events;
-    @Column(nullable = false, length = 128)
-    String title;
-    @Column(nullable = false)
-    boolean pinned;
+    @ManyToOne
+    @JoinColumn(name = "EVENT_ID")
+    Event event;
+    @CreationTimestamp
+    LocalDateTime created;
+    Long requesterId;
+    @Enumerated(EnumType.STRING)
+    ParticipationRequestStatus status;
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        Compilation that = (Compilation) o;
+        ParticipationRequest that = (ParticipationRequest) o;
         return id != null && Objects.equals(id, that.id);
     }
 

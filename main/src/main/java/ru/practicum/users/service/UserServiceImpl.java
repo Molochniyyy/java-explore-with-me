@@ -18,19 +18,18 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
-    private final UserMapper userMapper = Mappers.getMapper(UserMapper.class);
     private final UserRepository userRepository;
 
     @Override
     public UserDto addUser(NewUserRequest user) {
-        return userMapper.toDto(userRepository.save(userMapper.fromNewUserRequest(user)));
+        return UserMapper.toDto(userRepository.save(UserMapper.fromNewUserRequest(user)));
     }
 
     @Override
     public Collection<UserDto> findUsers(List<Long> ids, Integer from, Integer size) {
         Pageable pageable = PageRequest.of(from, size);
         return userRepository.findByIdIn(ids, pageable).stream()
-                .map(userMapper::toDto).collect(Collectors.toList());
+                .map(UserMapper::toDto).collect(Collectors.toList());
     }
 
     @Override

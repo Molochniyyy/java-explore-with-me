@@ -13,8 +13,15 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handleNotFoundException(final Exception e) {
+    public ErrorResponse handleNotFoundException(final NotFoundException e) {
         log.warn("Объект не найден: {}", e.getMessage());
         return new ErrorResponse("Объект не найден: " + e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleConflictException(final ConflictException e) {
+        log.warn("Объект не удовлетворяет правилам: {}", e.getMessage());
+        return new ErrorResponse("Объект не удовлетворяет правилам:" + e.getMessage());
     }
 }

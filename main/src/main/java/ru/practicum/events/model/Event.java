@@ -1,29 +1,47 @@
 package ru.practicum.events.model;
 
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import lombok.*;
+import org.hibernate.Hibernate;
 import ru.practicum.categories.model.Category;
-import ru.practicum.users.dto.UserDto;
-import ru.practicum.users.dto.UserShortDto;
+import ru.practicum.requests.model.ParticipationRequest;
 import ru.practicum.users.model.User;
 
 import javax.persistence.*;
-import javax.validation.constraints.Max;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.Objects;
 
+@NamedEntityGraph(
+        name = "event-entity-graph",
+        attributeNodes = {
+                @NamedAttributeNode("category"),
+                @NamedAttributeNode("initiator"),
+                @NamedAttributeNode("requests"),
+        }
+)
 @Entity
 @Table(name = "events")
-@Data
+@Getter
+@Setter
+@ToString
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Event {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
     @Column(nullable = false, length = 3000)
     String annotation;
-    //добавить категорию
     @ManyToOne
     @JoinColumn(nullable = false, name = "category_id")
     Category category;
+    @OneToMany(mappedBy = "event", fetch = FetchType.LAZY)
+    @JsonManagedReference
+    @ToString.Exclude
+    Collection<ParticipationRequest> requests;
     LocalDateTime createdOn;
     @Column(nullable = false, length = 10000)
     String description;
@@ -33,13 +51,26 @@ public class Event {
     User initiator;
     @Embedded
     Location location;
-    boolean paid;
+    Boolean paid;
     @Column(nullable = false)
     Long participantLimit;
     LocalDateTime publishedOn;
-    boolean requestModeration;
+    Boolean requestModeration;
     @Column(nullable = false, length = 100)
     EventState state;
     @Column(nullable = false, length = 200)
     String title;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        Event event = (Event) o;
+        return id != null && Objects.equals(id, event.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

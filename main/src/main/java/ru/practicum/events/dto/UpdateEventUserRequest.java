@@ -2,38 +2,30 @@ package ru.practicum.events.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.practicum.categories.dto.CategoryDto;
-import ru.practicum.events.model.EventState;
 import ru.practicum.events.model.Location;
-import ru.practicum.users.dto.UserShortDto;
+import ru.practicum.events.model.StateUserAction;
 
+import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
 
 @Data
-@Builder
-@AllArgsConstructor
 @NoArgsConstructor
-public class EventFullDto {
-    Long id;
+@AllArgsConstructor
+public class UpdateEventUserRequest {
+    @Size(min = 20, max = 2000)
     String annotation;
-    CategoryDto category;
-    Long confirmedRequests;
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    LocalDateTime createdOn;
+    Long categoryId;
+    @Size(min = 20, max = 7000)
     String description;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     LocalDateTime eventDate;
-    UserShortDto initiator;
     Location location;
     Boolean paid;
     Long participantLimit;
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    LocalDateTime publishedOn;
     Boolean requestModeration;
-    EventState state;
+    StateUserAction stateAction;
+    @Size(min = 3, max = 120)
     String title;
-    Long views;
 }

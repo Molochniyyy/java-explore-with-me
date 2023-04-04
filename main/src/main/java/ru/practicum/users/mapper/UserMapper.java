@@ -6,16 +6,35 @@ import ru.practicum.users.dto.UserShortDto;
 import ru.practicum.users.model.NewUserRequest;
 import ru.practicum.users.model.User;
 
-@Mapper(componentModel = "spring")
-public interface UserMapper {
+public class UserMapper {
 
-    UserDto toDto(User user);
+    public static UserDto toDto(User user) {
+        return UserDto.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .name(user.getName())
+                .build();
+    }
 
-    UserShortDto toShortDto(User user);
+    public static UserShortDto toShortDto(User user) {
+        return UserShortDto.builder()
+                .name(user.getName())
+                .id(user.getId())
+                .build();
+    }
 
-    User fromDto(UserDto userDto);
+    public static User fromDto(UserDto userDto) {
+        return User.builder()
+                .id(userDto.getId())
+                .email(userDto.getEmail())
+                .name(userDto.getName())
+                .build();
+    }
 
-    User fromShortDto(UserShortDto userShortDto);
-
-    User fromNewUserRequest(NewUserRequest userRequest);
+    public static User fromNewUserRequest(NewUserRequest userRequest) {
+        return User.builder()
+                .name(userRequest.getName())
+                .email(userRequest.getEmail())
+                .build();
+    }
 }
