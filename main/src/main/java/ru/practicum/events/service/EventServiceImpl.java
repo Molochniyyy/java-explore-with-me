@@ -3,8 +3,6 @@ package ru.practicum.events.service;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.StatisticClient;
@@ -28,10 +26,14 @@ import ru.practicum.users.repository.UserRepository;
 
 import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,13 +41,16 @@ import java.util.stream.Collectors;
 public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
+
+    private final EventMapper eventMapper;
+    private final ParticipationRequestMapper participationRequestMapper;
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
     private final ParticipationRequestRepository participationRequestRepository;
     private final EntityManager entityManager;
-
     private final StatisticClient statisticClient;
 
+    @Transactional
     @Override
     public EventFullDto addEvent(NewEventDto eventDto, Long userId) {
         if (eventDto.getEventDate().isBefore(LocalDateTime.now().plusHours(2))) {
@@ -53,23 +58,38 @@ public class EventServiceImpl implements EventService {
                     " чем через два часа от текущего момента");
         }
         User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
-        Category category = categoryRepository.findById(eventDto.getCategoryId()).orElseThrow(
+        categoryRepository.findById(eventDto.getCategoryId()).orElseThrow(
                 () -> new NotFoundException("Категория не найдена"));
-        return EventMapper.toFullDto(eventRepository.save(EventMapper.toEvent(eventDto, user, category)), 0L);
+        Event event = eventMapper.fromDto(eventDto, user);
+        event.setState(EventState.PENDING);
+        return eventMapper.toEventFullDto(eventRepository.save(event));
     }
 
     @Override
     public Collection<EventShortDto> getEventsOfUser(Long userId, Integer from, Integer size) {
-        Pageable pageable = PageRequest.of(from, size);
-        Collection<Event> events = eventRepository.findByInitiatorId(userId, pageable).getContent();
-        return new ArrayList<>(EventMapper.toShortDto(events, this.getViews(events)));
+        QEvent qEvent = QEvent.event;
+        JPAQueryFactory factory = new JPAQueryFactory(entityManager);
+
+        List<Event> events = factory
+                .selectFrom(qEvent)
+                .where(qEvent.initiator.id.eq(userId))
+                .offset(from)
+                .limit(size)
+                .setHint("javax.persistence.fetchgraph", entityManager.getEntityGraph("event-entity-graph"))
+                .fetch();
+
+        return mapToEventShortDtos(events, false);
     }
 
     @Override
     public EventFullDto getFullEventOfUser(Long userId, Long eventId) {
-        userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
-        Event event = eventRepository.findById(eventId).orElseThrow(() -> new NotFoundException("Событие не найдено"));
-        return EventMapper.toFullDto(event, this.getViews(List.of(event)));
+        Event event = getEventWithGraphAndValidate(userId, eventId);
+        Long confirmedRequests = event.getRequests().stream()
+                .filter(participationRequest -> Objects.equals(participationRequest.getStatus(),
+                        ParticipationRequestStatus.CONFIRMED))
+                .count();
+        Long views = getViewsOfOneEvent(eventId);
+        return eventMapper.toEventFullDto(event, confirmedRequests, views);
     }
 
     @Transactional
@@ -81,16 +101,14 @@ public class EventServiceImpl implements EventService {
         changeStateAction(eventRequest, updateEvent);
         changeCommonFields(eventRequest, updateEvent);
         eventRepository.save(updateEvent);
-        return EventMapper.toFullDto(updateEvent, getViews(List.of(updateEvent)));
+        return eventMapper.toEventFullDto(updateEvent);
     }
 
     @Override
     public Collection<ParticipationRequestDto> getEventRequests(Long userId, Long eventId) {
-        Event event = eventRepository.findById(eventId).orElseThrow(() -> new NotFoundException("Событие не найдено"));
-        if (event.getInitiator().getId().equals(userId)) {
-            throw new NotFoundException("Пользователь не является создателем мероприятия");
-        }
-        return ParticipationRequestMapper.toDto(event.getRequests());
+        Event event = getEventWithGraphAndValidate(userId, eventId);
+        Collection<ParticipationRequest> requests = event.getRequests();
+        return participationRequestMapper.toDtos(requests);
     }
 
     @Transactional
@@ -123,7 +141,7 @@ public class EventServiceImpl implements EventService {
         participationRequestRepository.saveAll(changingRequests);
         Map<Boolean, List<ParticipationRequestDto>> requestDtos =
                 changingRequests.stream()
-                        .map(ParticipationRequestMapper::toDto)
+                        .map(participationRequestMapper::toDto)
                         .collect(Collectors.partitioningBy(
                                 request2 -> Objects.equals(request2.getStatus(), ParticipationRequestStatus.CONFIRMED)));
 
@@ -133,14 +151,61 @@ public class EventServiceImpl implements EventService {
     @Override
     public Collection<EventFullDto> getEvents(List<Long> users, List<String> states, List<Long> categories,
                                               LocalDateTime rangeStart, LocalDateTime rangeEnd,
-                                              Integer from, Integer size) {
-        return null;
+                                              Integer from, Integer size, String ip) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Event> cq = cb.createQuery(Event.class);
+        Root<Event> root = cq.from(Event.class);
+        cq.select(root);
+
+        // создаем предикаты для where
+        List<Predicate> predicates = new ArrayList<>();
+        if (users != null) {
+            predicates.add(root.get("initiator").in(users));
+        }
+        if (categories != null) {
+            predicates.add(root.get("category").in(categories));
+        }
+        if (states != null) {
+            predicates.add(root.get("state").in(states));
+        }
+
+        if (rangeStart != null && rangeEnd != null) {
+            predicates.add(cb.between(root.get("eventDate"), rangeStart, rangeEnd));
+        } else if (rangeStart != null) {
+            predicates.add(cb.greaterThanOrEqualTo(root.get("eventDate"), rangeStart));
+        } else if (rangeEnd != null) {
+            predicates.add(cb.lessThanOrEqualTo(root.get("eventDate"), rangeEnd));
+        }
+
+        cq.where(predicates.toArray(new Predicate[0]));
+
+        TypedQuery<Event> query = entityManager.createQuery(cq);
+        query.setFirstResult(from).setMaxResults(size);
+
+        // просим добавить к запросу сущности User + Category + List PartRequests (тогда у нас будет 1 запрос вместо 4)
+        EntityGraph<?> entityGraph = entityManager.getEntityGraph("event-entity-graph");
+        query.setHint("javax.persistence.fetchgraph", entityGraph);
+
+        List<Event> events = query.getResultList();
+
+        List<EventFullDto> eventDtos = new ArrayList<>();
+
+        // запрашиваем просмотры в сервисе статистики (будут получены только те события, у которых были просмотры)
+        Map<Long, Long> viewsMap = getViewsMap(events);
+
+        for (Event event : events) {
+            long views = viewsMap.getOrDefault(event.getId(), 0L);
+            long participantLimit = event.getParticipantLimit();
+            long confirmedRequests = getConfirmedRequests(event, participantLimit);
+            eventDtos.add(eventMapper.toEventFullDto(event, confirmedRequests, views));
+        }
+        return eventDtos;
     }
 
     @Override
     public Collection<EventShortDto> getEvents(String text, Boolean paid, Boolean onlyAvailable, EventSort sort,
                                                List<Long> categories, LocalDateTime rangeStart, LocalDateTime rangeEnd,
-                                               Integer from, Integer size) {
+                                               Integer from, Integer size, String ip) {
         JPAQueryFactory factory = new JPAQueryFactory(entityManager);
         QEvent qEvent = QEvent.event;
         JPAQuery<Event> query = factory.selectFrom(qEvent)
@@ -159,32 +224,180 @@ public class EventServiceImpl implements EventService {
 
         List<EventShortDto> eventShortDtos = mapToEventShortDtos(events, onlyAvailable);
 
-        if (sort!=null && sort.equals(EventSort.VIEWS)){
+        if (sort != null && sort.equals(EventSort.VIEWS)) {
             eventShortDtos.sort(Comparator.comparing(EventShortDto::getViews).reversed());
         }
-        statisticClient.postStat("ewm-main-service", "/events", )
+        statisticClient.postStat("ewm-main-service", "/events", ip, LocalDateTime.now());
         return null;
     }
 
     @Override
-    public EventFullDto getFullEvent(Long eventId) {
-        return null;
+    public EventFullDto getFullEvent(Long eventId, String ip) {
+        EntityGraph<?> entityGraph = entityManager.getEntityGraph("event-entity-graph");
+        Map<String, Object> properties = new HashMap<>();
+        properties.put("javax.persistence.fetchgraph", entityGraph);
+        Event event = entityManager.find(Event.class, eventId, properties);
+        validateEvent(event);
+        Long confirmedRequests = event.getRequests().stream()
+                .filter(request -> Objects.equals(request.getStatus(), ParticipationRequestStatus.CONFIRMED))
+                .count();
+        // получаем количество просмотров события (из статистики)
+        Long views = getViewsOfOneEvent(eventId);
+        // отправляем в статистику информацию о просмотре события
+        statisticClient.postStatMonolith("ewm-main-service", "/events/" + eventId, ip, LocalDateTime.now());
+        return eventMapper.toEventFullDto(event, confirmedRequests, views);
     }
 
+    @Transactional
     @Override
-    public Map<Long, Long> getViews(Collection<Event> events) {
-        List<String> uris = events.stream()
+    public EventFullDto changeEventByAdmin(Long eventId, UpdateEventAdminRequest eventAdminRequest) {
+        Event event = eventRepository.findById(eventId).orElseThrow(
+                () -> new NotFoundException("Событие не найдено"));
+        changeEventDate(eventAdminRequest, event);
+        changeStateAction(eventAdminRequest, event);
+        changeCategory(eventAdminRequest, event);
+        changeCommonFields(eventAdminRequest, event);
+        Event changedEvent = eventRepository.save(event);
+        return eventMapper.toEventFullDto(changedEvent);
+    }
+
+    private void changeStateAction(UpdateEventAdminRequest eventDto, Event event) {
+        StateAdminAction stateAction = eventDto.getStateAction();
+        if (stateAction == null) {
+            return;
+        }
+        switch (stateAction) {
+            case PUBLISH_EVENT:
+                if (eventDto.getEventDate().isBefore(LocalDateTime.now().plus(1, ChronoUnit.HOURS))) {
+                    throw new ValidationException(
+                            "Дата начала изменяемого события должна быть не ранее чем за час от даты публикации");
+                }
+                if (Objects.equals(event.getState(), EventState.PENDING)) {
+                    event.setState(EventState.PUBLISHED);
+                    event.setPublishedOn(LocalDateTime.now());
+                } else {
+                    throw new ConflictException("" +
+                            "Событие можно публиковать, только если оно в состоянии ожидания публикации");
+                }
+                break;
+            case REJECT_EVENT:
+                if (!Objects.equals(event.getState(), EventState.PUBLISHED)) {
+                    event.setState(EventState.CANCELED);
+                } else {
+                    throw new ConflictException("" +
+                            "Событие можно отклонить, только если оно еще не опубликовано");
+                }
+                break;
+            default:
+                throw new ValidationException("Состояние изменяемого события должно быть " +
+                        "PUBLISH_EVENT, REJECT_EVENT или null");
+        }
+    }
+
+    private void changeCommonFields(UpdateEventAdminRequest eventDto, Event event) {
+        if (eventDto.getTitle() != null) {
+            event.setTitle(eventDto.getTitle());
+        }
+        if (eventDto.getAnnotation() != null) {
+            event.setAnnotation(eventDto.getAnnotation());
+        }
+        if (eventDto.getDescription() != null) {
+            event.setDescription(eventDto.getDescription());
+        }
+        if (eventDto.getLocation() != null) {
+            event.setLocation(eventDto.getLocation());
+        }
+        if (eventDto.getPaid() != null) {
+            event.setPaid(eventDto.getPaid());
+        }
+        if (eventDto.getParticipantLimit() != null) {
+            event.setParticipantLimit(eventDto.getParticipantLimit());
+        }
+        if (eventDto.getRequestModeration() != null) {
+            event.setRequestModeration(eventDto.getRequestModeration());
+        }
+    }
+
+    private void changeCategory(UpdateEventAdminRequest eventDto, Event event) {
+        if (eventDto.getCategoryId() == null) {
+            return;
+        }
+        Category category = categoryRepository.findById(eventDto.getCategoryId()).orElseThrow(
+                () -> new NotFoundException("Категория не найдена"));
+        event.setCategory(category);
+    }
+
+    private Map<Long, Long> getViewsMap(List<Event> events) {
+        List<Long> eventIds = events.stream()
                 .map(Event::getId)
-                .map(id -> "/events/" + id.toString())
-                .collect(Collectors.toUnmodifiableList());
-        List<ViewStatsDto> eventStats = statisticClient.getStats(uris);
-        return eventStats.stream()
-                .filter(viewStatsDto -> viewStatsDto.getApp().equals("ewm-service"))
-                .collect(Collectors.toMap(viewStatsDto -> {
-                    Pattern pattern = Pattern.compile("/events/([0-9]*)");
-                    Matcher matcher = pattern.matcher(viewStatsDto.getUri());
-                    return Long.parseLong(matcher.group(1));
-                }, ViewStatsDto::getHits));
+                .collect(Collectors.toList());
+        return getViewsByIds(eventIds);
+    }
+
+    private static void validateEvent(Event event) {
+        if (event == null) {
+            throw new NotFoundException("Событие не найдено");
+        }
+        if (!Objects.equals(event.getState(), EventState.PUBLISHED)) {
+            throw new ValidationException("Событие должно быть опубликовано");
+        }
+    }
+
+    private Event getEventWithGraphAndValidate(Long initiatorId, Long eventId) {
+        EntityGraph<?> entityGraph = entityManager.getEntityGraph("event-entity-graph");
+        Map<String, Object> properties = new HashMap<>();
+        properties.put("javax.persistence.fetchgraph", entityGraph);
+        Event event = entityManager.find(Event.class, eventId, properties);
+        validateEventAndInitiator(initiatorId, event);
+        return event;
+    }
+
+    private static void validateEventAndInitiator(Long initiatorId, Event event) {
+        if (event == null) {
+            throw new NotFoundException("Событие не найдено");
+        }
+        if (!Objects.equals(initiatorId, event.getInitiator().getId())) {
+            throw new ValidationException("Запрос может делать только пользователь, создавший событие (инициатор)");
+        }
+    }
+
+    private void changeEventDate(UpdateEventAdminRequest eventDto, Event event) {
+        if (eventDto.getEventDate() == null) {
+            return;
+        }
+        if (eventDto.getEventDate().isBefore(LocalDateTime.now().plus(1, ChronoUnit.HOURS))) {
+            throw new ValidationException(
+                    "Дата начала изменяемого события должна быть не ранее чем за час от даты публикации");
+        }
+        event.setEventDate(eventDto.getEventDate());
+    }
+
+    private Map<Long, Long> getViewsByIds(List<Long> eventIds) {
+        if (eventIds == null || eventIds.size() == 0) {
+            return null;
+        }
+        // подготавливаем данные
+        String[] uri = new String[eventIds.size()];
+        final String EVENTS = "/events/";
+        for (int i = 0; i < eventIds.size(); i++) {
+            uri[i] = EVENTS + eventIds.get(i);
+        }
+        LocalDateTime start = LocalDateTime.of(2023, 1, 1, 0, 0);
+        LocalDateTime end = LocalDateTime.now();
+
+        // запрашиваем статистику
+        List<ViewStatsDto> statArray = statisticClient.getStatList(start, end, uri, false);
+
+        // обрабатываем результат запроса
+        int indexOfStartOfId = EVENTS.length();
+        Map<Long, Long> result = new HashMap<>();
+        for (ViewStatsDto hit : statArray) {
+            String idString = hit.getUri().substring(indexOfStartOfId);
+            Long id = Long.parseLong(idString);
+            result.put(id, hit.getHits());
+        }
+        // возвращаем результат (события, у которых не было просмотров, не попадут в результат)
+        return result;
     }
 
     private void addTextCategoriesAndPaid(String text, List<Long> categories, Boolean paid,
@@ -202,9 +415,9 @@ public class EventServiceImpl implements EventService {
         }
     }
 
-    private List<EventShortDto> mapToEventShortDtos(List<Event> events, Boolean onlyAvailable) {
+    public List<EventShortDto> mapToEventShortDtos(List<Event> events, Boolean onlyAvailable) {
         // запрашиваем просмотры в сервисе статистики (будут получены только те события, у которых были просмотры)
-        Map<Long, Long> viewsMap = getViews(events);
+        Map<Long, Long> viewsMap = getViewsMap(events);
         List<EventShortDto> eventDtos = new ArrayList<>();
         for (Event event : events) {
             long views = viewsMap.getOrDefault(event.getId(), 0L);
@@ -214,7 +427,7 @@ public class EventServiceImpl implements EventService {
             // иначе добавляем только те события, у которых нет лимита участия (participantLimit == 0),
             // или у которых не исчерпан лимит участия (participantLimit - confirmedRequests) > 0)
             if (!onlyAvailable || (participantLimit == 0) || ((participantLimit - confirmedRequests) > 0)) {
-                eventDtos.add(EventMapper.toShortDto(event, views));
+                eventDtos.add(eventMapper.toEventShortDto(event, confirmedRequests, views));
             }
         }
         return eventDtos;
@@ -350,5 +563,20 @@ public class EventServiceImpl implements EventService {
             }
             --currentLimit;
         }
+    }
+
+    private Long getViewsOfOneEvent(Long eventId) {
+        // подготавливаем данные
+        String[] uri = {"/events/" + eventId};
+        LocalDateTime start = LocalDateTime.of(2023, 1, 1, 0, 0);
+        LocalDateTime end = LocalDateTime.now();
+
+        // запрашиваем статистику
+        ViewStatsDto[] statArray = statisticClient.getStatArray(start, end, uri, false);
+        if (statArray.length == 1) {
+            ViewStatsDto hitShortWithHitsDtoResponse = statArray[0];
+            return hitShortWithHitsDtoResponse.getHits();
+        }
+        return 0L;
     }
 }

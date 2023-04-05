@@ -11,9 +11,9 @@ public interface CompilationService {
 
     CompilationDto addCompilation(NewCompilationDto compilationDto);
 
-    CompilationDto updateCompilation(UpdateCompilationRequest compilationRequest);
+    CompilationDto updateCompilation(UpdateCompilationRequest compilationRequest, Long compId);
 
-    Collection<CompilationDto> findCompilations(boolean pinned, Integer from, Integer size);
+    Collection<CompilationDto> findCompilations(Boolean pinned, Integer from, Integer size);
 
-    CompilationDto findCompilationById(Integer compId);
+    CompilationDto findCompilationById(Long compId);
 }

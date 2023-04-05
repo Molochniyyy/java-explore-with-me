@@ -23,9 +23,9 @@ public class UpdateEventAdminRequest {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     LocalDateTime eventDate;
     Location location;
-    boolean paid;
-    Integer participantLimit;
-    boolean requestModeration;
+    Boolean paid;
+    Long participantLimit;
+    Boolean requestModeration;
     StateAdminAction stateAction;
     @Size(min = 3, max = 120)
     String title;

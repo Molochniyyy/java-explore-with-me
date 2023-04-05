@@ -1,10 +1,10 @@
 package ru.practicum.users.service;
 
 import lombok.RequiredArgsConstructor;
-import org.mapstruct.factory.Mappers;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.exceptions.NotFoundException;
 import ru.practicum.users.dto.UserDto;
 import ru.practicum.users.mapper.UserMapper;
@@ -17,21 +17,25 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
+    @Transactional
     @Override
     public UserDto addUser(NewUserRequest user) {
-        return UserMapper.toDto(userRepository.save(UserMapper.fromNewUserRequest(user)));
+        return userMapper.toDto(userRepository.save(userMapper.fromNewUserDto(user)));
     }
 
     @Override
     public Collection<UserDto> findUsers(List<Long> ids, Integer from, Integer size) {
-        Pageable pageable = PageRequest.of(from, size);
+        Pageable pageable = PageRequest.of(from / size, size);
         return userRepository.findByIdIn(ids, pageable).stream()
-                .map(UserMapper::toDto).collect(Collectors.toList());
+                .map(userMapper::toDto).collect(Collectors.toList());
     }
 
+    @Transactional
     @Override
     public void deleteUser(Long userId) {
         userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден"));

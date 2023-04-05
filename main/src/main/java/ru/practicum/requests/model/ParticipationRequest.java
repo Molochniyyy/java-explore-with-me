@@ -4,6 +4,7 @@ import lombok.*;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.CreationTimestamp;
 import ru.practicum.events.model.Event;
+import ru.practicum.users.model.User;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -29,6 +30,16 @@ public class ParticipationRequest {
     Long requesterId;
     @Enumerated(EnumType.STRING)
     ParticipationRequestStatus status;
+
+    public ParticipationRequest(User requester, Event event) {
+        this.requesterId = requester.getId();
+        this.event = event;
+        if (event.getRequestModeration()) {
+            status = ParticipationRequestStatus.PENDING;
+        } else {
+            status = ParticipationRequestStatus.CONFIRMED;
+        }
+    }
 
     @Override
     public boolean equals(Object o) {

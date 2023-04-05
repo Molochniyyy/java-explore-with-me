@@ -30,7 +30,8 @@ public interface EventService {
                                        LocalDateTime rangeStart,
                                        LocalDateTime rangeEnd,
                                        Integer from,
-                                       Integer size);
+                                       Integer size,
+                                       String ip);
 
     Collection<EventShortDto> getEvents(String text,
                                         Boolean paid,
@@ -40,9 +41,10 @@ public interface EventService {
                                         LocalDateTime rangeStart,
                                         LocalDateTime rangeEnd,
                                         Integer from,
-                                        Integer size);
+                                        Integer size,
+                                        String ip);
 
-    EventFullDto getFullEvent(Long eventId);
+    EventFullDto getFullEvent(Long eventId, String ip);
 
-    Map<Long, Long> getViews(Collection<Event> events);
+    EventFullDto changeEventByAdmin(Long eventId, UpdateEventAdminRequest eventAdminRequest);
 }
