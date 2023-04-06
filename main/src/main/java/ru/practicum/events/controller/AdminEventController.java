@@ -36,7 +36,7 @@ public class AdminEventController {
             @RequestParam(defaultValue = "10") int size,
             HttpServletRequest request) {
         log.info("{}", ControllerLog.createUrlInfo(request));
-        List<EventFullDto> result = service.getEvents(users, states, categories , rangeStart, rangeEnd, from, size);
+        List<EventFullDto> result = service.getEvents(users, states, categories, rangeStart, rangeEnd, from, size);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 

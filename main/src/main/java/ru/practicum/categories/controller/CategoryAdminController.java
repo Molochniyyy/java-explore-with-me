@@ -23,6 +23,7 @@ import java.util.List;
 public class CategoryAdminController {
 
     private final CategoryService service;
+
     @GetMapping
     ResponseEntity<List<CategoryDto>> getAllCategories(@PositiveOrZero @RequestParam(name = "from", defaultValue = "0")
                                                        Integer fromElement,

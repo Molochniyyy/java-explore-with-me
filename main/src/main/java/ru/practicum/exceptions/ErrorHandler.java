@@ -24,4 +24,11 @@ public class ErrorHandler {
         log.warn("Объект не удовлетворяет правилам: {}", e.getMessage());
         return new ErrorResponse("Объект не удовлетворяет правилам:" + e.getMessage());
     }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleValidationException(final ValidationException e) {
+        log.warn("Некорректный запрос: {}", e.getMessage());
+        return new ErrorResponse("Некорректный запрос" + e.getMessage());
+    }
 }

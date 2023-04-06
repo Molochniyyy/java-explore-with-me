@@ -23,23 +23,23 @@ public interface EventService {
                                                        EventRequestStatusUpdateRequest request);
 
     List<EventFullDto> getEvents(List<Long> users,
-                                       List<EventState> states,
-                                       List<Long> categories,
-                                       LocalDateTime rangeStart,
-                                       LocalDateTime rangeEnd,
-                                       Integer from,
-                                       Integer size);
+                                 List<EventState> states,
+                                 List<Long> categories,
+                                 LocalDateTime rangeStart,
+                                 LocalDateTime rangeEnd,
+                                 Integer from,
+                                 Integer size);
 
     List<EventShortDto> getEvents(String text,
-                                        Boolean paid,
-                                        Boolean onlyAvailable,
-                                        EventSort sort,
-                                        List<Long> categories,
-                                        LocalDateTime rangeStart,
-                                        LocalDateTime rangeEnd,
-                                        Integer from,
-                                        Integer size,
-                                        String ip);
+                                  Boolean paid,
+                                  Boolean onlyAvailable,
+                                  EventSort sort,
+                                  List<Long> categories,
+                                  LocalDateTime rangeStart,
+                                  LocalDateTime rangeEnd,
+                                  Integer from,
+                                  Integer size,
+                                  String ip);
 
     EventFullDto getFullEvent(Long eventId, String ip);
 
