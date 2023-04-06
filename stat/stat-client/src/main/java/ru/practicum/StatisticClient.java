@@ -1,40 +1,20 @@
 package ru.practicum;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.tomcat.util.buf.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.lang.Nullable;
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.DefaultUriBuilderFactory;
-import org.springframework.web.util.UriComponents;
-import org.springframework.web.util.UriComponentsBuilder;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.swing.text.View;
-import java.net.http.HttpClient;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 
-public class StatisticClient  {
+public class StatisticClient {
     protected final RestTemplate restTemplate;
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -43,7 +23,7 @@ public class StatisticClient  {
     }
 
     public ViewStatsDto[] getStatArray(LocalDateTime start, LocalDateTime end, String[] uris,
-                                                      Boolean unique) {
+                                       Boolean unique) {
         Map<String, Object> parameters = getParametersMap(start, end, uris, unique);
         String path = "/stats?start={start}&end={end}&uris={uris}&unique={unique}";
         ResponseEntity<ViewStatsDto[]> responseEntity =
@@ -61,14 +41,15 @@ public class StatisticClient  {
     }
 
     public List<ViewStatsDto> getStatList(LocalDateTime start, LocalDateTime end,
-                                                         String[] uris, Boolean unique) {
+                                          String[] uris, Boolean unique) {
         Map<String, Object> parameters = getParametersMap(start, end, uris, unique);
         String path = "/stats?start={start}&end={end}&uris={uris}&unique={unique}";
         ResponseEntity<List<ViewStatsDto>> responseEntity = restTemplate.exchange(
                 path,
                 HttpMethod.GET,
                 null,
-                new ParameterizedTypeReference<List<ViewStatsDto>>() {},
+                new ParameterizedTypeReference<>() {
+                },
                 parameters);
         return responseEntity.getBody();
     }
