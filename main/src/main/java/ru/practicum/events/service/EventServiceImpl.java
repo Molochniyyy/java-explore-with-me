@@ -41,7 +41,6 @@ import java.util.stream.Collectors;
 public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
-
     private final EventMapper eventMapper;
     private final ParticipationRequestMapper participationRequestMapper;
     private final CategoryRepository categoryRepository;
@@ -58,15 +57,15 @@ public class EventServiceImpl implements EventService {
                     " чем через два часа от текущего момента");
         }
         User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
-        categoryRepository.findById(eventDto.getCategoryId()).orElseThrow(
+        Category category = categoryRepository.findById(eventDto.getCategoryId()).orElseThrow(
                 () -> new NotFoundException("Категория не найдена"));
-        Event event = eventMapper.fromDto(eventDto, user);
+        Event event = eventMapper.fromDto(eventDto, user, category);
         event.setState(EventState.PENDING);
         return eventMapper.toEventFullDto(eventRepository.save(event));
     }
 
     @Override
-    public Collection<EventShortDto> getEventsOfUser(Long userId, Integer from, Integer size) {
+    public List<EventShortDto> getEventsOfUser(Long userId, Integer from, Integer size) {
         QEvent qEvent = QEvent.event;
         JPAQueryFactory factory = new JPAQueryFactory(entityManager);
 
@@ -105,9 +104,9 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public Collection<ParticipationRequestDto> getEventRequests(Long userId, Long eventId) {
+    public List<ParticipationRequestDto> getEventRequests(Long userId, Long eventId) {
         Event event = getEventWithGraphAndValidate(userId, eventId);
-        Collection<ParticipationRequest> requests = event.getRequests();
+        List<ParticipationRequest> requests = event.getRequests();
         return participationRequestMapper.toDtos(requests);
     }
 
@@ -149,9 +148,9 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public Collection<EventFullDto> getEvents(List<Long> users, List<String> states, List<Long> categories,
-                                              LocalDateTime rangeStart, LocalDateTime rangeEnd,
-                                              Integer from, Integer size, String ip) {
+    public List<EventFullDto> getEvents(List<Long> users, List<EventState> states, List<Long> categories,
+                                        LocalDateTime rangeStart, LocalDateTime rangeEnd,
+                                        Integer from, Integer size) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Event> cq = cb.createQuery(Event.class);
         Root<Event> root = cq.from(Event.class);
@@ -203,9 +202,9 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public Collection<EventShortDto> getEvents(String text, Boolean paid, Boolean onlyAvailable, EventSort sort,
-                                               List<Long> categories, LocalDateTime rangeStart, LocalDateTime rangeEnd,
-                                               Integer from, Integer size, String ip) {
+    public List<EventShortDto> getEvents(String text, Boolean paid, Boolean onlyAvailable, EventSort sort,
+                                         List<Long> categories, LocalDateTime rangeStart, LocalDateTime rangeEnd,
+                                         Integer from, Integer size, String ip) {
         JPAQueryFactory factory = new JPAQueryFactory(entityManager);
         QEvent qEvent = QEvent.event;
         JPAQuery<Event> query = factory.selectFrom(qEvent)

@@ -4,28 +4,23 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
 import ru.practicum.categories.model.Category;
-import ru.practicum.categories.service.CategoryService;
+import ru.practicum.categories.service.CategoryServiceImpl;
 import ru.practicum.events.dto.EventFullDto;
 import ru.practicum.events.dto.EventShortDto;
 import ru.practicum.events.dto.NewEventDto;
 import ru.practicum.events.model.Event;
-import ru.practicum.users.mapper.UserMapper;
 import ru.practicum.users.model.User;
-
-import java.util.Collection;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE,
         componentModel = "spring",
-        uses = {CategoryService.class})
+        uses = {CategoryServiceImpl.class})
 public interface EventMapper {
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "category", source = "newEventDto.category")
+    @Mapping(target = "category", source = "category")
     @Mapping(target = "initiator", source = "initiator")
         // Категория берется с помощью метода в классе CategoryServiceAdminImpl, указанном в аннтотации к этому классу
         // В остальных случаях необходимые сущности передаются вторым, третьим и т.д. аргументами - например, как с User)
-    Event fromDto(NewEventDto newEventDto, User initiator);
+    Event fromDto(NewEventDto newEventDto, User initiator, Category category);
 
     EventFullDto toEventFullDto(Event event);
 

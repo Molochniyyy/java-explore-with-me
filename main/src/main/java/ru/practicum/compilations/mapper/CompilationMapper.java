@@ -14,10 +14,10 @@ import java.util.List;
 public interface CompilationMapper {
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "eventsOfCompilation", source = "events")
+    @Mapping(target = "events", source = "events")
     Compilation toEntity(NewCompilationDto compilationNewDto, List<Event> events);
 
-    @Mapping(target = "events", source = "eventsOfCompilation")
+    @Mapping(target = "events", source = "events")
     CompilationDto toDto(Compilation compilation);
 
     @Mapping(target = "events", source = "events")

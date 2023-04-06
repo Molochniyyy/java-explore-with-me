@@ -7,7 +7,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.categories.dto.CategoryDto;
-import ru.practicum.categories.service.CategoryServiceImpl;
+import ru.practicum.categories.dto.NewCategoryDto;
+import ru.practicum.categories.service.CategoryService;
+import ru.practicum.utils.ControllerLog;
+import ru.practicum.utils.Create;
+import ru.practicum.utils.Update;
+
+import javax.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/admin/categories")
@@ -15,29 +21,30 @@ import ru.practicum.categories.service.CategoryServiceImpl;
 @RequiredArgsConstructor
 @Validated
 public class CategoryPublicController {
-    private final CategoryServiceImpl service;
+    private final CategoryService service;
 
     @PostMapping
-    ResponseEntity<CategoryDto> saveCategory(@Validated({Create.class}) @RequestBody CategoryDto categoryDto) {
-        log.info("\n\nПолучен запрос к эндпоинту: POST /admin/categories" +
-                "\nСоздан объект из тела запроса:\n'{}'", categoryDto);
-        CategoryDto result = categoryServiceAdmin.saveCategory(categoryDto);
+    ResponseEntity<CategoryDto> saveCategory(@Validated({Create.class}) @RequestBody NewCategoryDto categoryDto,
+                                             HttpServletRequest request) {
+        log.info("{}", ControllerLog.createUrlInfo(request));
+        CategoryDto result = service.addCategory(categoryDto);
         return new ResponseEntity<>(result, HttpStatus.CREATED);
     }
 
     @PatchMapping(path = "/{catId}")
     ResponseEntity<CategoryDto> updateCategory(@PathVariable Long catId,
-                                               @Validated({Update.class}) @RequestBody CategoryDto categoryDto) {
-        log.info("\n\nПолучен запрос к эндпоинту: PATCH /admin/categories/{}\n" +
-                "Создан объект из тела запроса:\n'{}'", catId, categoryDto);
-        CategoryDto result = categoryServiceAdmin.updateCategory(catId, categoryDto);
+                                               @Validated({Update.class}) @RequestBody CategoryDto categoryDto,
+                                               HttpServletRequest request) {
+        log.info("{}", ControllerLog.createUrlInfo(request));
+        CategoryDto result = service.updateCategory(catId, categoryDto);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     @DeleteMapping(path = "/{catId}")
-    ResponseEntity<Void> deleteCategory(@PathVariable Long catId) {
-        log.info("\n\nПолучен запрос к эндпоинту: DELETE /admin/categories/{}", catId);
-        categoryServiceAdmin.deleteCategory(catId);
+    ResponseEntity<Void> deleteCategory(@PathVariable Long catId,
+                                        HttpServletRequest request) {
+        log.info("{}", ControllerLog.createUrlInfo(request));
+        service.deleteCategory(catId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

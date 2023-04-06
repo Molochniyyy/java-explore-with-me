@@ -70,7 +70,7 @@ public class CompilationServiceImpl implements CompilationService {
     }
 
     @Override
-    public Collection<CompilationDto> findCompilations(Boolean pinned, Integer from, Integer size) {
+    public List<CompilationDto> findCompilations(Boolean pinned, Integer from, Integer size) {
         Pageable pageable = PageRequest.of(from / size, size);
 
         Collection<Compilation> compilations = repository.findCompilationsByPinned(pinned, pageable);

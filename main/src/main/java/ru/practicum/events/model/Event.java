@@ -1,6 +1,5 @@
 package ru.practicum.events.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.*;
 import org.hibernate.Hibernate;
@@ -10,7 +9,7 @@ import ru.practicum.users.model.User;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 @NamedEntityGraph(
@@ -41,7 +40,7 @@ public class Event {
     @OneToMany(mappedBy = "event", fetch = FetchType.LAZY)
     @JsonManagedReference
     @ToString.Exclude
-    Collection<ParticipationRequest> requests;
+    List<ParticipationRequest> requests;
     LocalDateTime createdOn;
     @Column(nullable = false, length = 10000)
     String description;

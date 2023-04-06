@@ -1,39 +1,36 @@
 package ru.practicum.events.service;
 
 import ru.practicum.events.dto.*;
-import ru.practicum.events.model.Event;
 import ru.practicum.events.model.EventSort;
+import ru.practicum.events.model.EventState;
 import ru.practicum.requests.dto.ParticipationRequestDto;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 public interface EventService {
     EventFullDto addEvent(NewEventDto eventDto, Long userId);
 
-    Collection<EventShortDto> getEventsOfUser(Long userId, Integer from, Integer size);
+    List<EventShortDto> getEventsOfUser(Long userId, Integer from, Integer size);
 
     EventFullDto getFullEventOfUser(Long userId, Long eventId);
 
     EventFullDto updateEventByUser(UpdateEventUserRequest event, Long userId, Long eventId);
 
-    Collection<ParticipationRequestDto> getEventRequests(Long userId, Long eventId);
+    List<ParticipationRequestDto> getEventRequests(Long userId, Long eventId);
 
     EventRequestStatusUpdateResult changeRequestStatus(Long userId, Long eventId,
                                                        EventRequestStatusUpdateRequest request);
 
-    Collection<EventFullDto> getEvents(List<Long> users,
-                                       List<String> states,
+    List<EventFullDto> getEvents(List<Long> users,
+                                       List<EventState> states,
                                        List<Long> categories,
                                        LocalDateTime rangeStart,
                                        LocalDateTime rangeEnd,
                                        Integer from,
-                                       Integer size,
-                                       String ip);
+                                       Integer size);
 
-    Collection<EventShortDto> getEvents(String text,
+    List<EventShortDto> getEvents(String text,
                                         Boolean paid,
                                         Boolean onlyAvailable,
                                         EventSort sort,
