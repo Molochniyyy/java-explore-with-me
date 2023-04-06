@@ -1,12 +1,28 @@
 package ru.practicum.exceptions;
 
 import lombok.Getter;
+import org.springframework.http.HttpStatus;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.time.LocalDateTime;
 
 @Getter
 public class ErrorResponse {
-    private final String error;
+    private final String message; // Сообщение об ошибке
+    private final HttpStatus status; // Код статуса HTTP-ответа
+    private final String reason; // Общее описание причины ошибки
+    private final LocalDateTime timestamp; // Дата и время когда произошла ошибка
+    private final String errors; // Список стектрейсов или описания ошибок
 
-    public ErrorResponse(String error) {
-        this.error = error;
+    public ErrorResponse(Throwable e, HttpStatus status, String reason) {
+        message = e.getMessage();
+        this.status = status;
+        this.reason = reason;
+        timestamp = LocalDateTime.now();
+        StringWriter stringWriter = new StringWriter();
+        PrintWriter printWriter = new PrintWriter(stringWriter);
+        e.printStackTrace(printWriter);
+        errors = stringWriter.toString();
     }
 }

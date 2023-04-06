@@ -24,9 +24,10 @@ public class StatisticController {
     private final StatisticService statisticService;
 
     @PostMapping("/hit")
-    public ResponseEntity<EndpointHitDto> saveStat(@RequestBody @Valid EndpointHitDto endpointHitDto) {
+    public ResponseEntity<?> saveStat(@RequestBody @Valid EndpointHitDto endpointHitDto) {
         log.info("Запрос на сохранение информации об обращении к эндпоинту {}", endpointHitDto.getUri());
-        return ResponseEntity.status(HttpStatus.CREATED).body(statisticService.saveStatistic(endpointHitDto));
+        statisticService.saveStatistic(endpointHitDto);
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @GetMapping("/stats")

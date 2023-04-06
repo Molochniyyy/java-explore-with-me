@@ -7,39 +7,44 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.categories.dto.CategoryDto;
+import ru.practicum.categories.dto.NewCategoryDto;
 import ru.practicum.categories.service.CategoryService;
 import ru.practicum.utils.ControllerLog;
+import ru.practicum.utils.Create;
+import ru.practicum.utils.Update;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.PositiveOrZero;
-import java.util.List;
 
 @RestController
-@RequestMapping(path = "/categories")
+@RequestMapping("/admin/categories")
 @Slf4j
 @RequiredArgsConstructor
 @Validated
 public class CategoryAdminController {
-
     private final CategoryService service;
 
-    @GetMapping
-    ResponseEntity<List<CategoryDto>> getAllCategories(@PositiveOrZero @RequestParam(name = "from", defaultValue = "0")
-                                                       Integer fromElement,
-                                                       @Positive @RequestParam(defaultValue = "10") Integer size,
-                                                       HttpServletRequest request) {
+    @PostMapping
+    ResponseEntity<CategoryDto> saveCategory(@Validated({Create.class}) @RequestBody NewCategoryDto categoryDto,
+                                             HttpServletRequest request) {
         log.info("{}", ControllerLog.createUrlInfo(request));
-        List<CategoryDto> result = service.getCategories(fromElement, size);
+        CategoryDto result = service.addCategory(categoryDto);
+        return new ResponseEntity<>(result, HttpStatus.CREATED);
+    }
+
+    @PatchMapping(path = "/{catId}")
+    ResponseEntity<CategoryDto> updateCategory(@PathVariable Long catId,
+                                               @Validated({Update.class}) @RequestBody CategoryDto categoryDto,
+                                               HttpServletRequest request) {
+        log.info("{}", ControllerLog.createUrlInfo(request));
+        CategoryDto result = service.updateCategory(catId, categoryDto);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
-    @GetMapping(path = "/{catId}")
-    ResponseEntity<CategoryDto> getCategoryById(@PathVariable Long catId,
-                                                HttpServletRequest request) {
+    @DeleteMapping(path = "/{catId}")
+    ResponseEntity<Void> deleteCategory(@PathVariable Long catId,
+                                        HttpServletRequest request) {
         log.info("{}", ControllerLog.createUrlInfo(request));
-        CategoryDto result = service.getCategoryById(catId);
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        service.deleteCategory(catId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
-
 }

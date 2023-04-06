@@ -5,8 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.practicum.events.dto.EventShortDto;
 import ru.practicum.requests.model.ParticipationRequestStatus;
+import ru.practicum.utils.Create;
+import ru.practicum.utils.Update;
 
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
@@ -17,11 +18,11 @@ import java.time.LocalDateTime;
 @Builder
 public class ParticipationRequestDto {
     Long id;
-    @NotNull
+    @NotNull(groups = {Create.class, Update.class})
     Long eventId;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     LocalDateTime created;
-    @NotNull
+    @NotNull(groups = {Create.class, Update.class})
     Long requesterId;
     ParticipationRequestStatus status;
 }

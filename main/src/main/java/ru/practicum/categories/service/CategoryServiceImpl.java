@@ -12,6 +12,7 @@ import ru.practicum.categories.model.Category;
 import ru.practicum.categories.repository.CategoryRepository;
 import ru.practicum.exceptions.ConflictException;
 import ru.practicum.exceptions.NotFoundException;
+import ru.practicum.exceptions.ValidationException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,7 +31,7 @@ public class CategoryServiceImpl implements CategoryService {
             categoryRepository.save(category);
             return categoryMapper.toDto(category);
         } catch (DataIntegrityViolationException e) {
-            throw new ConflictException("Имя категории должно быть уникальным");
+            throw new ValidationException("Имя категории должно быть уникальным");
         }
     }
 

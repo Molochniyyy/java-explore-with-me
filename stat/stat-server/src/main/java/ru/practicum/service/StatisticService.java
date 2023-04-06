@@ -3,6 +3,7 @@ package ru.practicum.service;
 import lombok.RequiredArgsConstructor;
 import org.mapstruct.factory.Mappers;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.EndpointHitDto;
 import ru.practicum.ViewStatsDto;
 import ru.practicum.mapper.StatisticMapper;
@@ -15,13 +16,14 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class StatisticService {
     private final StatisticRepository statisticRepository;
-    private final StatisticMapper statisticMapper = Mappers.getMapper(StatisticMapper.class);
     private final ViewStatsMapper viewStatsMapper = Mappers.getMapper(ViewStatsMapper.class);
 
-    public EndpointHitDto saveStatistic(EndpointHitDto endpointHitDto) {
-        return statisticMapper.toDto(statisticRepository.save(statisticMapper.fromDto(endpointHitDto)));
+    @Transactional
+    public void saveStatistic(EndpointHitDto endpointHitDto) {
+       statisticRepository.save(StatisticMapper.fromDto(endpointHitDto));
     }
 
     public List<ViewStatsDto> getStatistic(LocalDateTime start, LocalDateTime end, List<String> uris, boolean unique) {
