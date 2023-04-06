@@ -22,41 +22,27 @@ public class StatisticClient {
         this.restTemplate = restTemplate;
     }
 
-    public ViewStatsDto[] getStatArray(LocalDateTime start, LocalDateTime end, String[] uris,
-                                       Boolean unique) {
+    public ViewStatsDto[] getStatArray(LocalDateTime start, LocalDateTime end, String[] uris, Boolean unique) {
         Map<String, Object> parameters = getParametersMap(start, end, uris, unique);
         String path = "/stats?start={start}&end={end}&uris={uris}&unique={unique}";
-        ResponseEntity<ViewStatsDto[]> responseEntity =
-                restTemplate.getForEntity(path, ViewStatsDto[].class, parameters);
+        ResponseEntity<ViewStatsDto[]> responseEntity = restTemplate.getForEntity(path, ViewStatsDto[].class, parameters);
         return responseEntity.getBody();
     }
 
-    private static Map<String, Object> getParametersMap(LocalDateTime start, LocalDateTime end, String[] uris,
-                                                        Boolean unique) {
-        return Map.of(
-                "start", start.format(DATE_TIME_FORMATTER),
-                "end", end.format(DATE_TIME_FORMATTER),
-                "uris", uris,
-                "unique", unique);
+    private static Map<String, Object> getParametersMap(LocalDateTime start, LocalDateTime end, String[] uris, Boolean unique) {
+        return Map.of("start", start.format(DATE_TIME_FORMATTER), "end", end.format(DATE_TIME_FORMATTER), "uris", uris, "unique", unique);
     }
 
-    public List<ViewStatsDto> getStatList(LocalDateTime start, LocalDateTime end,
-                                          String[] uris, Boolean unique) {
+    public List<ViewStatsDto> getStatList(LocalDateTime start, LocalDateTime end, String[] uris, Boolean unique) {
         Map<String, Object> parameters = getParametersMap(start, end, uris, unique);
         String path = "/stats?start={start}&end={end}&uris={uris}&unique={unique}";
-        ResponseEntity<List<ViewStatsDto>> responseEntity = restTemplate.exchange(
-                path,
-                HttpMethod.GET,
-                null,
-                new ParameterizedTypeReference<>() {
-                },
-                parameters);
+        ResponseEntity<List<ViewStatsDto>> responseEntity = restTemplate.exchange(path, HttpMethod.GET, null, new ParameterizedTypeReference<>() {
+        }, parameters);
         return responseEntity.getBody();
     }
 
     // Данный метод - альтернатива двум предыдущим методам getStatArray и getStatList.
-    public ResponseEntity<Object> getStatObject(LocalDateTime start, LocalDateTime end, String[] uris,
-                                                Boolean unique) {
+    public ResponseEntity<Object> getStatObject(LocalDateTime start, LocalDateTime end, String[] uris, Boolean unique) {
         Map<String, Object> parameters = getParametersMap(start, end, uris, unique);
         String path = "/stats?start={start}&end={end}&uris={uris}&unique={unique}";
         return makeAndSendRequest(HttpMethod.GET, path, parameters, null);
@@ -74,8 +60,7 @@ public class StatisticClient {
         return makeAndSendRequest(HttpMethod.POST, "/hit", null, hitDtoRequest);
     }
 
-    private <T> ResponseEntity<Object> makeAndSendRequest(HttpMethod method, String path,
-                                                          @Nullable Map<String, Object> parameters, @Nullable T body) {
+    private <T> ResponseEntity<Object> makeAndSendRequest(HttpMethod method, String path, @Nullable Map<String, Object> parameters, @Nullable T body) {
         HttpEntity<T> requestEntity = new HttpEntity<>(body, null);
 
         ResponseEntity<Object> responseEntity;
