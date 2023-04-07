@@ -7,6 +7,7 @@ import ru.practicum.users.model.NewUserRequest;
 import java.util.Collection;
 import java.util.List;
 
+@Service
 public interface UserService {
     UserDto addUser(NewUserRequest userDto);
 

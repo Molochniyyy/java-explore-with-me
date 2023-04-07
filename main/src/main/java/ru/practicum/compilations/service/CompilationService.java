@@ -1,11 +1,13 @@
 package ru.practicum.compilations.service;
 
+import org.springframework.stereotype.Service;
 import ru.practicum.compilations.dto.CompilationDto;
 import ru.practicum.compilations.dto.NewCompilationDto;
 import ru.practicum.compilations.dto.UpdateCompilationRequest;
 
 import java.util.List;
 
+@Service
 public interface CompilationService {
     void deleteCompilation(Long compId);
 

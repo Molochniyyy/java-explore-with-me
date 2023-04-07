@@ -1,11 +1,12 @@
 package ru.practicum.categories.service;
 
+import org.springframework.stereotype.Service;
 import ru.practicum.categories.dto.CategoryDto;
 import ru.practicum.categories.dto.NewCategoryDto;
 
-import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
 
+@Service
 public interface CategoryService {
     CategoryDto addCategory(NewCategoryDto newCategoryDto);
 
