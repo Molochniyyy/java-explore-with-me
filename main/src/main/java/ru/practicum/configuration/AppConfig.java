@@ -29,7 +29,7 @@ public class AppConfig {
     }
 
     @Bean
-    public StatisticClient baseClient(@Value("${stats-server.url}") String serverUrl, RestTemplateBuilder builder) {
+    public StatisticClient baseClient(@Value("http://localhost:9090") String serverUrl, RestTemplateBuilder builder) {
         RestTemplate restTemplate = builder
                 .uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl))
                 .requestFactory(HttpComponentsClientHttpRequestFactory::new)
