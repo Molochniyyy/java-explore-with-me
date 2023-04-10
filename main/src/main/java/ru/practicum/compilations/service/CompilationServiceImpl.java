@@ -92,10 +92,10 @@ public class CompilationServiceImpl implements CompilationService {
 
     @Override
     public CompilationDto findCompilationById(Long compId) {
-        Compilation compilation = repository.findById(compId).orElseThrow(
+        Compilation comp = repository.findById(compId).orElseThrow(
                 () -> new NotFoundException("Подборка не найдена"));
-        List<Event> events = new ArrayList<>(compilation.getEvents());
+        List<Event> events = new ArrayList<>(comp.getEvents());
         List<EventShortDto> eventShortDtos = eventService.mapToEventShortDtos(events, false);
-        return compilationMapper.toDto(compilation, eventShortDtos);
+        return compilationMapper.toDto(comp, eventShortDtos);
     }
 }
