@@ -1,7 +1,6 @@
 package ru.practicum.utils;
 
 import lombok.experimental.UtilityClass;
-import net.bytebuddy.dynamic.DynamicType;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Optional;

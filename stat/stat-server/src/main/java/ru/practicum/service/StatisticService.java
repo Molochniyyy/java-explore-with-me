@@ -23,7 +23,7 @@ public class StatisticService {
 
     @Transactional
     public void saveStatistic(EndpointHitDto endpointHitDto) {
-       statisticRepository.save(StatisticMapper.fromDto(endpointHitDto));
+        statisticRepository.save(StatisticMapper.fromDto(endpointHitDto));
     }
 
     public List<ViewStatsDto> getStatistic(LocalDateTime start, LocalDateTime end, List<String> uris, boolean unique) {
