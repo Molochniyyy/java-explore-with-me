@@ -60,7 +60,7 @@ public class ErrorHandler {
 
     @ExceptionHandler
     public ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(final DataIntegrityViolationException e) {
-        log.info("409 {}", e.getMessage(), e);
+        log.info("400 {}", e.getMessage(), e);
         final HttpStatus status = HttpStatus.BAD_REQUEST;
         ErrorResponse errorResponse = new ErrorResponse(e, status, "Ошибка. DataIntegrityViolationException");
         return new ResponseEntity<>(errorResponse, status);

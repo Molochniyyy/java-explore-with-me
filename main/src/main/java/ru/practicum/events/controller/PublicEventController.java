@@ -10,6 +10,7 @@ import ru.practicum.events.dto.EventFullDto;
 import ru.practicum.events.dto.EventShortDto;
 import ru.practicum.events.model.EventSort;
 import ru.practicum.events.service.EventService;
+import ru.practicum.exceptions.NotFoundException;
 import ru.practicum.utils.ControllerLog;
 
 import javax.servlet.http.HttpServletRequest;
@@ -32,19 +33,27 @@ public class PublicEventController {
     }
 
     @GetMapping
-    ResponseEntity<List<EventShortDto>> getPublishedEvents(
+    ResponseEntity<List<EventShortDto>> getEvents(
             @RequestParam(required = false) String text,
             @RequestParam(required = false) List<Long> categories,
             @RequestParam(required = false) Boolean paid,
             @RequestParam(required = false) LocalDateTime rangeStart,
             @RequestParam(required = false) LocalDateTime rangeEnd,
             @RequestParam(defaultValue = "false") Boolean onlyAvailable,
-            @RequestParam(required = false) EventSort sort,
+            @RequestParam(required = false) String sort,
             @RequestParam(defaultValue = "0") int from,
             @RequestParam(defaultValue = "10") int size,
             HttpServletRequest request) {
         log.info("{}", ControllerLog.createUrlInfo(request));
-        List<EventShortDto> result = service.getEvents(text, paid, onlyAvailable, sort, categories, rangeStart, rangeEnd, from, size, request.getRemoteAddr());
+        EventSort eventSort;
+        if (sort != null) {
+            eventSort = EventSort.from(sort).orElseThrow(
+                    () -> new NotFoundException("Вид сортировки не найден."));
+        } else {
+            eventSort = null;
+        }
+        List<EventShortDto> result = service.getEvents(text, paid, onlyAvailable, eventSort, categories, rangeStart,
+                rangeEnd, from, size, request.getRemoteAddr());
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 }

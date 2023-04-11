@@ -52,10 +52,16 @@ public class PrivateEventController {
 
     @PatchMapping(path = "/{eventId}")
     ResponseEntity<EventFullDto> changeEvent(@PathVariable Long initiatorId, @PathVariable Long eventId,
-                                             @RequestBody UpdateEventUserRequest updateRequest,
+                                             @RequestBody(required = false) UpdateEventUserRequest updateRequest,
                                              HttpServletRequest request) {
         log.info("{}", ControllerLog.createUrlInfo(request));
-        EventFullDto result = service.updateEventByUser(updateRequest, initiatorId, eventId);
+        UpdateEventUserRequest newUpdateUser;
+        if (updateRequest == null) {
+            newUpdateUser = UpdateEventUserRequest.builder().build();
+        } else {
+            newUpdateUser = updateRequest;
+        }
+        EventFullDto result = service.updateEventByUser(newUpdateUser, initiatorId, eventId);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 

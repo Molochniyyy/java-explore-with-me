@@ -10,6 +10,7 @@ import ru.practicum.compilations.dto.CompilationDto;
 import ru.practicum.compilations.dto.NewCompilationDto;
 import ru.practicum.compilations.dto.UpdateCompilationRequest;
 import ru.practicum.compilations.service.CompilationService;
+import ru.practicum.exceptions.ValidationException;
 import ru.practicum.utils.ControllerLog;
 import ru.practicum.utils.Create;
 
@@ -25,8 +26,11 @@ public class AdminCompilationsController {
 
     @PostMapping
     ResponseEntity<CompilationDto> saveCompilation(
-            @Validated({Create.class}) @RequestBody NewCompilationDto newCompilationDto,
+            @Validated({Create.class}) @RequestBody(required = false) NewCompilationDto newCompilationDto,
             HttpServletRequest request) {
+        if (newCompilationDto == null) {
+            throw new ValidationException("Пустое body");
+        }
         log.info("{}", ControllerLog.createUrlInfo(request));
         CompilationDto result = service.addCompilation(newCompilationDto);
         return new ResponseEntity<>(result, HttpStatus.CREATED);

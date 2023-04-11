@@ -94,7 +94,8 @@ public class EventServiceImpl implements EventService {
     @Transactional
     @Override
     public EventFullDto updateEventByUser(UpdateEventUserRequest eventRequest, Long userId, Long eventId) {
-        Event updateEvent = eventRepository.findById(eventId).orElseThrow(() -> new ConflictException("Событие не найдено"));
+        Event updateEvent = eventRepository.findById(eventId).orElseThrow(
+                () -> new ConflictException("Событие не найдено"));
         validateEventDto(eventRequest, userId, updateEvent);
         changeCategory(eventRequest, updateEvent);
         changeStateAction(eventRequest, updateEvent);
@@ -227,7 +228,7 @@ public class EventServiceImpl implements EventService {
             eventShortDtos.sort(Comparator.comparing(EventShortDto::getViews).reversed());
         }
         statisticClient.postStat("ewm-main-service", "/events", ip, LocalDateTime.now());
-        return null;
+        return eventShortDtos;
     }
 
     @Override
