@@ -12,12 +12,12 @@ import java.util.List;
         componentModel = "spring")
 public interface ParticipationRequestMapper {
 
-    @Mapping(target = "requesterId", source = "requesterId")
-    @Mapping(target = "eventId", source = "event.id")
+    @Mapping(target = "requester", source = "requester.id")
+    @Mapping(target = "event", source = "event.id")
     ParticipationRequestDto toDto(ParticipationRequest participationRequest);
 
-    @Mapping(target = "requesterId", source = "requesterId")
-    @Mapping(target = "eventId", source = "event.id")
+    @Mapping(target = "requester", source = "requester.id")
+    @Mapping(target = "event", source = "event.id")
     List<ParticipationRequestDto> toDtos(List<ParticipationRequest> participationRequest);
 
 

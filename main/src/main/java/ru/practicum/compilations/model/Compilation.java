@@ -5,9 +5,24 @@ import org.hibernate.Hibernate;
 import ru.practicum.events.model.Event;
 
 import javax.persistence.*;
-import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
+@NamedEntityGraph(
+        name = "compilation-entity-graph",
+        attributeNodes = {
+                @NamedAttributeNode(value = "events", subgraph = "events-subgraph"),
+        },
+        subgraphs = {
+                @NamedSubgraph(
+                        name = "events-subgraph",
+                        attributeNodes = {
+                                @NamedAttributeNode("category"),
+                                @NamedAttributeNode("initiator")
+                        }
+                )
+        }
+)
 @Entity
 @Table(name = "compilations")
 @AllArgsConstructor
@@ -20,11 +35,11 @@ public class Compilation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
     @ManyToMany
-    @JoinTable(name = "COMPILATION_EVENT",
+    @JoinTable(name = "compilations_events",
             joinColumns = @JoinColumn(name = "COMPILATION_ID"),
             inverseJoinColumns = @JoinColumn(name = "EVENT_ID"))
     @ToString.Exclude
-    Collection<Event> events;
+    List<Event> events;
     @Column(nullable = false, length = 128)
     String title;
     @Column(nullable = false)

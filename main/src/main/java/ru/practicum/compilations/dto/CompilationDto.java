@@ -7,7 +7,7 @@ import ru.practicum.events.dto.EventShortDto;
 import ru.practicum.utils.Create;
 
 import javax.validation.constraints.NotNull;
-import java.util.Collection;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -15,7 +15,7 @@ import java.util.Collection;
 public class CompilationDto {
     @NotNull(groups = {Create.class})
     Long id;
-    Collection<EventShortDto> events;
+    List<EventShortDto> events;
     @NotNull(groups = {Create.class})
     String title;
     @NotNull(groups = {Create.class})

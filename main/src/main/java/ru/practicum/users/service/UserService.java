@@ -1,8 +1,8 @@
 package ru.practicum.users.service;
 
 import org.springframework.stereotype.Service;
+import ru.practicum.users.dto.NewUserRequest;
 import ru.practicum.users.dto.UserDto;
-import ru.practicum.users.model.NewUserRequest;
 
 import java.util.Collection;
 import java.util.List;

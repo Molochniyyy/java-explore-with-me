@@ -27,7 +27,7 @@ public class PublicEventController {
 
     @GetMapping(path = "{eventId}")
     ResponseEntity<EventFullDto> getEventById(@PathVariable Long eventId, HttpServletRequest request) {
-        log.info("{}", ControllerLog.createUrlInfo(request));
+        log.info("\n\n{}\n", ControllerLog.createUrlInfo(request));
         EventFullDto result = service.getFullEvent(eventId, request.getRemoteAddr());
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
@@ -44,7 +44,7 @@ public class PublicEventController {
             @RequestParam(defaultValue = "0") int from,
             @RequestParam(defaultValue = "10") int size,
             HttpServletRequest request) {
-        log.info("{}", ControllerLog.createUrlInfo(request));
+        log.info("\n\n{}\n", ControllerLog.createUrlInfo(request));
         EventSort eventSort;
         if (sort != null) {
             eventSort = EventSort.from(sort).orElseThrow(

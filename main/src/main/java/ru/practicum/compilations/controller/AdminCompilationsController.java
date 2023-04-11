@@ -10,7 +10,6 @@ import ru.practicum.compilations.dto.CompilationDto;
 import ru.practicum.compilations.dto.NewCompilationDto;
 import ru.practicum.compilations.dto.UpdateCompilationRequest;
 import ru.practicum.compilations.service.CompilationService;
-import ru.practicum.exceptions.ValidationException;
 import ru.practicum.utils.ControllerLog;
 import ru.practicum.utils.Create;
 
@@ -26,12 +25,9 @@ public class AdminCompilationsController {
 
     @PostMapping
     ResponseEntity<CompilationDto> saveCompilation(
-            @Validated({Create.class}) @RequestBody(required = false) NewCompilationDto newCompilationDto,
+            @Validated({Create.class}) @RequestBody NewCompilationDto newCompilationDto,
             HttpServletRequest request) {
-        if (newCompilationDto == null) {
-            throw new ValidationException("Пустое body");
-        }
-        log.info("{}", ControllerLog.createUrlInfo(request));
+        log.info("\n\n{}\n", ControllerLog.createUrlInfo(request));
         CompilationDto result = service.addCompilation(newCompilationDto);
         return new ResponseEntity<>(result, HttpStatus.CREATED);
     }
@@ -41,7 +37,7 @@ public class AdminCompilationsController {
             @PathVariable Long compId,
             @RequestBody UpdateCompilationRequest updateCompilationRequest,
             HttpServletRequest request) {
-        log.info("{}", ControllerLog.createUrlInfo(request));
+        log.info("\n\n{}\n", ControllerLog.createUrlInfo(request));
         CompilationDto result = service.updateCompilation(updateCompilationRequest, compId);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
@@ -49,7 +45,7 @@ public class AdminCompilationsController {
     @DeleteMapping(path = "/{compId}")
     ResponseEntity<Void> deleteCompilation(@PathVariable Long compId,
                                            HttpServletRequest request) {
-        log.info("{}", ControllerLog.createUrlInfo(request));
+        log.info("\n\n{}\n", ControllerLog.createUrlInfo(request));
         service.deleteCompilation(compId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

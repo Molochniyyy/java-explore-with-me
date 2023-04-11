@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.practicum.utils.Create;
 import ru.practicum.utils.Update;
 
 import javax.validation.constraints.NotNull;
@@ -15,6 +14,6 @@ import javax.validation.constraints.NotNull;
 @NoArgsConstructor
 public class CategoryDto {
     Long id;
-    @NotNull(groups = {Create.class, Update.class})
+    @NotNull(groups = {Update.class})
     String name;
 }

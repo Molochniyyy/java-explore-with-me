@@ -46,7 +46,7 @@ public class Event {
     String description;
     LocalDateTime eventDate;
     @ManyToOne
-    @JoinColumn(nullable = false, name = "INITIATOR_ID")
+    @JoinColumn(nullable = false, name = "initiator_id")
     User initiator;
     @Embedded
     Location location;

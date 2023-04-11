@@ -35,17 +35,18 @@ public class AdminEventController {
             @RequestParam(defaultValue = "0") int from,
             @RequestParam(defaultValue = "10") int size,
             HttpServletRequest request) {
-        log.info("{}", ControllerLog.createUrlInfo(request));
-        List<EventFullDto> result = service.getEvents(users, states, categories, rangeStart, rangeEnd, from, size);
+        log.info("\n\n{}\n", ControllerLog.createUrlInfo(request));
+        List<EventFullDto> result = service.getEvents(users, states, categories,
+                rangeStart, rangeEnd, from, size);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     @PatchMapping(path = "/{eventId}")
     ResponseEntity<EventFullDto> changeEvent(@PathVariable Long eventId,
-                                             @Validated({Update.class}) @RequestBody
-                                             UpdateEventAdminRequest updateEventAdminRequest,
+                                             @Validated({Update.class})
+                                             @RequestBody UpdateEventAdminRequest updateEventAdminRequest,
                                              HttpServletRequest request) {
-        log.info("{}", ControllerLog.createUrlInfo(request));
+        log.info("\n\n{}\n", ControllerLog.createUrlInfo(request));
         EventFullDto result = service.changeEventByAdmin(eventId, updateEventAdminRequest);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }

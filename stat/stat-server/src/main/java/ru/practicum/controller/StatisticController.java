@@ -12,7 +12,6 @@ import ru.practicum.ViewStatsDto;
 import ru.practicum.service.StatisticService;
 
 import javax.validation.Valid;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -32,9 +31,9 @@ public class StatisticController {
 
     @GetMapping("/stats")
     public List<ViewStatsDto> getStat(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-                                      LocalDateTime start,
+                                      String start,
                                       @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-                                      LocalDateTime end,
+                                      String end,
                                       @RequestParam(required = false) List<String> uris,
                                       @RequestParam(defaultValue = "false") boolean unique) {
         log.info("Запрос на получение статистики");

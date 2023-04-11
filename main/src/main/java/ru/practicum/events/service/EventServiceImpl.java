@@ -49,19 +49,13 @@ public class EventServiceImpl implements EventService {
     private final EntityManager entityManager;
     private final StatisticClient statisticClient;
 
-    @Transactional
-    @Override
-    public EventFullDto addEvent(NewEventDto eventDto, Long userId) {
-        if (eventDto.getEventDate().isBefore(LocalDateTime.now().plusHours(2))) {
-            throw new ConflictException("Дата и время на которые намечено событие не может быть раньше," +
-                    " чем через два часа от текущего момента");
+    private static void validateRequests(List<ParticipationRequest> requests) {
+        boolean notPending = requests.stream()
+                .anyMatch(request ->
+                        !Objects.equals(request.getStatus(), ParticipationRequestStatus.PENDING));
+        if (notPending) {
+            throw new ConflictException("Не все заявки находятся в состоянии ожидания");
         }
-        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
-        Category category = categoryRepository.findById(eventDto.getCategoryId()).orElseThrow(
-                () -> new NotFoundException("Категория не найдена"));
-        Event event = eventMapper.fromDto(eventDto, user, category);
-        event.setState(EventState.PENDING);
-        return eventMapper.toEventFullDto(eventRepository.save(event));
     }
 
     @Override
@@ -113,39 +107,17 @@ public class EventServiceImpl implements EventService {
 
     @Transactional
     @Override
-    public EventRequestStatusUpdateResult changeRequestStatus(Long userId, Long eventId,
-                                                              EventRequestStatusUpdateRequest request) {
-        Event event = eventRepository.findById(eventId).orElseThrow(() -> new NotFoundException("Событие не найдено"));
-        if (!event.getRequestModeration() || event.getParticipantLimit() == 0) {
-            return null;
+    public EventFullDto addEvent(NewEventDto eventDto, Long userId) {
+        if (eventDto.getEventDate().isBefore(LocalDateTime.now().plusHours(2))) {
+            throw new ConflictException("Дата и время на которые намечено событие не может быть раньше," +
+                    " чем через два часа от текущего момента");
         }
-        Collection<ParticipationRequest> requests = event.getRequests();
-        Collection<Long> changingRequestsIds = request.getRequestsIds();
-        List<ParticipationRequest> changingRequests = requests.stream()
-                .filter(request1 -> changingRequestsIds.contains(request1.getId()))
-                .collect(Collectors.toList());
-        validateRequests(changingRequests);
-
-        switch (request.getStatus()) {
-            case CONFIRMED:
-                confirmRequests(changingRequests, event);
-                break;
-            case REJECTED:
-                changingRequests = changingRequests.stream()
-                        .peek(request1 -> request1.setStatus(ParticipationRequestStatus.REJECTED))
-                        .collect(Collectors.toList());
-                break;
-            default:
-                throw new ValidationException("Статус должен быть CONFIRMED или REJECTED");
-        }
-        participationRequestRepository.saveAll(changingRequests);
-        Map<Boolean, List<ParticipationRequestDto>> requestDtos =
-                changingRequests.stream()
-                        .map(participationRequestMapper::toDto)
-                        .collect(Collectors.partitioningBy(
-                                request2 -> Objects.equals(request2.getStatus(), ParticipationRequestStatus.CONFIRMED)));
-
-        return new EventRequestStatusUpdateResult(requestDtos.get(true), requestDtos.get(false));
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+        Category category = categoryRepository.findById(eventDto.getCategory()).orElseThrow(
+                () -> new NotFoundException("Категория не найдена"));
+        Event event = eventMapper.fromDto(eventDto, user, category);
+        event.setState(EventState.PENDING);
+        return eventMapper.toEventFullDto(eventRepository.save(event));
     }
 
     @Override
@@ -261,37 +233,41 @@ public class EventServiceImpl implements EventService {
         return eventMapper.toEventFullDto(changedEvent);
     }
 
-    private void changeStateAction(UpdateEventAdminRequest eventDto, Event event) {
-        StateAdminAction stateAction = eventDto.getStateAction();
-        if (stateAction == null) {
-            return;
+    @Transactional
+    @Override
+    public EventRequestStatusUpdateResult changeRequestStatus(Long userId, Long eventId,
+                                                              EventRequestStatusUpdateRequest request) {
+        Event event = getEventWithGraphAndValidate(userId, eventId);
+        if (!event.getRequestModeration() || event.getParticipantLimit() == 0) {
+            return null;
         }
-        switch (stateAction) {
-            case PUBLISH_EVENT:
-                if (eventDto.getEventDate().isBefore(LocalDateTime.now().plus(1, ChronoUnit.HOURS))) {
-                    throw new ValidationException(
-                            "Дата начала изменяемого события должна быть не ранее чем за час от даты публикации");
-                }
-                if (Objects.equals(event.getState(), EventState.PENDING)) {
-                    event.setState(EventState.PUBLISHED);
-                    event.setPublishedOn(LocalDateTime.now());
-                } else {
-                    throw new ConflictException("" +
-                            "Событие можно публиковать, только если оно в состоянии ожидания публикации");
-                }
+        List<ParticipationRequest> requests = event.getRequests();
+        List<Long> changingRequestsIds = request.getRequestIds();
+        List<ParticipationRequest> changingRequests = requests.stream()
+                .filter(request1 -> changingRequestsIds.contains(request1.getId()))
+                .collect(Collectors.toList());
+        validateRequests(changingRequests);
+
+        switch (request.getStatus()) {
+            case CONFIRMED:
+                confirmRequests(changingRequests, event);
                 break;
-            case REJECT_EVENT:
-                if (!Objects.equals(event.getState(), EventState.PUBLISHED)) {
-                    event.setState(EventState.CANCELED);
-                } else {
-                    throw new ConflictException("" +
-                            "Событие можно отклонить, только если оно еще не опубликовано");
-                }
+            case REJECTED:
+                changingRequests = changingRequests.stream()
+                        .peek(request1 -> request1.setStatus(ParticipationRequestStatus.REJECTED))
+                        .collect(Collectors.toList());
                 break;
             default:
-                throw new ValidationException("Состояние изменяемого события должно быть " +
-                        "PUBLISH_EVENT, REJECT_EVENT или null");
+                throw new ValidationException("Статус должен быть CONFIRMED или REJECTED");
         }
+        participationRequestRepository.saveAll(changingRequests);
+        Map<Boolean, List<ParticipationRequestDto>> requestDtos =
+                changingRequests.stream()
+                        .map(participationRequestMapper::toDto)
+                        .collect(Collectors.partitioningBy(
+                                request2 -> Objects.equals(request2.getStatus(), ParticipationRequestStatus.CONFIRMED)));
+
+        return new EventRequestStatusUpdateResult(requestDtos.get(true), requestDtos.get(false));
     }
 
     private void changeCommonFields(UpdateEventAdminRequest eventDto, Event event) {
@@ -361,15 +337,38 @@ public class EventServiceImpl implements EventService {
         }
     }
 
-    private void changeEventDate(UpdateEventAdminRequest eventDto, Event event) {
-        if (eventDto.getEventDate() == null) {
+    private void changeStateAction(UpdateEventAdminRequest eventDto, Event event) {
+        StateAdminAction stateAction = eventDto.getStateAction();
+        if (stateAction == null) {
             return;
         }
-        if (eventDto.getEventDate().isBefore(LocalDateTime.now().plus(1, ChronoUnit.HOURS))) {
-            throw new ValidationException(
-                    "Дата начала изменяемого события должна быть не ранее чем за час от даты публикации");
+        switch (stateAction) {
+            case PUBLISH_EVENT:
+                if (eventDto.getEventDate() != null && eventDto.getEventDate().isBefore(LocalDateTime.now()
+                        .plus(1, ChronoUnit.HOURS))) {
+                    throw new ValidationException(
+                            "Дата начала изменяемого события должна быть не ранее чем за час от даты публикации");
+                }
+                if (Objects.equals(event.getState(), EventState.PENDING)) {
+                    event.setState(EventState.PUBLISHED);
+                    event.setPublishedOn(LocalDateTime.now());
+                } else {
+                    throw new ConflictException("" +
+                            "Событие можно публиковать, только если оно в состоянии ожидания публикации");
+                }
+                break;
+            case REJECT_EVENT:
+                if (!Objects.equals(event.getState(), EventState.PUBLISHED)) {
+                    event.setState(EventState.CANCELED);
+                } else {
+                    throw new ConflictException("" +
+                            "Событие можно отклонить, только если оно еще не опубликовано");
+                }
+                break;
+            default:
+                throw new ValidationException("Состояние изменяемого события должно быть " +
+                        "PUBLISH_EVENT, REJECT_EVENT или null");
         }
-        event.setEventDate(eventDto.getEventDate());
     }
 
     private Map<Long, Long> getViewsByIds(List<Long> eventIds) {
@@ -496,17 +495,15 @@ public class EventServiceImpl implements EventService {
         }
     }
 
-    private void validateEventDto(UpdateEventUserRequest eventRequest, Long initiatorId, Event event) {
-        if (eventRequest.getEventDate().isBefore(LocalDateTime.now().plusHours(2))) {
-            throw new ConflictException("Дата и время на которые намечено событие не может быть раньше," +
-                    " чем через два часа от текущего момента");
+    private void changeEventDate(UpdateEventAdminRequest eventDto, Event event) {
+        if (eventDto.getEventDate() == null) {
+            return;
         }
-        if (event.getState() == EventState.PUBLISHED) {
-            throw new ConflictException("Нельзя обновить уже опубликованное мероприятие");
+        if (eventDto.getEventDate().isBefore(LocalDateTime.now().plus(1, ChronoUnit.HOURS))) {
+            throw new ConflictException(
+                    "Дата начала изменяемого события должна быть не ранее чем за час от даты публикации");
         }
-        if (!Objects.equals(event.getInitiator().getId(), initiatorId)) {
-            throw new NotFoundException("Пользователь не является создателем мероприятия");
-        }
+        event.setEventDate(eventDto.getEventDate());
     }
 
     private void changeStateAction(UpdateEventUserRequest updateRequestDto, Event event) {
@@ -527,22 +524,26 @@ public class EventServiceImpl implements EventService {
         }
     }
 
-    private void changeCategory(UpdateEventUserRequest updateRequestDto, Event event) {
-        if (updateRequestDto.getCategoryId() == null) {
-            return;
+    private void validateEventDto(UpdateEventUserRequest eventRequest, Long initiatorId, Event event) {
+        if (eventRequest.getEventDate() != null && eventRequest.getEventDate().isBefore(LocalDateTime.now().plusHours(2))) {
+            throw new ConflictException("Дата и время на которые намечено событие не может быть раньше," +
+                    " чем через два часа от текущего момента");
         }
-        Category category = categoryRepository.findById(updateRequestDto.getCategoryId()).orElseThrow(
-                () -> new NotFoundException("Категория не найдена"));
-        event.setCategory(category);
+        if (event.getState() == EventState.PUBLISHED) {
+            throw new ConflictException("Нельзя обновить уже опубликованное мероприятие");
+        }
+        if (!Objects.equals(event.getInitiator().getId(), initiatorId)) {
+            throw new NotFoundException("Пользователь не является создателем мероприятия");
+        }
     }
 
-    private static void validateRequests(List<ParticipationRequest> requests) {
-        boolean notPending = requests.stream()
-                .anyMatch(request ->
-                        !Objects.equals(request.getStatus(), ParticipationRequestStatus.PENDING));
-        if (notPending) {
-            throw new ValidationException("Не все заявки находятся в состоянии ожидания");
+    private void changeCategory(UpdateEventUserRequest updateRequestDto, Event event) {
+        if (updateRequestDto.getCategory() == null) {
+            return;
         }
+        Category category = categoryRepository.findById(updateRequestDto.getCategory()).orElseThrow(
+                () -> new NotFoundException("Категория не найдена"));
+        event.setCategory(category);
     }
 
     private void confirmRequests(List<ParticipationRequest> requests, Event event) {
@@ -551,7 +552,7 @@ public class EventServiceImpl implements EventService {
                 .count();
         long participantLimit = event.getParticipantLimit();
         if (participantLimit <= confirmedRequestCount) {
-            throw new ValidationException("Достигнут лимит одобренных заявок");
+            throw new ConflictException("Достигнут лимит одобренных заявок");
         }
 
         long currentLimit = participantLimit - confirmedRequestCount;

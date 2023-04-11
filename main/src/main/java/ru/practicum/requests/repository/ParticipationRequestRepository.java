@@ -7,6 +7,7 @@ import ru.practicum.events.model.Event;
 import ru.practicum.requests.dto.ParticipationRequestDto;
 import ru.practicum.requests.model.ParticipationRequest;
 import ru.practicum.requests.model.ParticipationRequestStatus;
+import ru.practicum.users.model.User;
 
 import java.util.List;
 
@@ -14,10 +15,10 @@ import java.util.List;
 public interface ParticipationRequestRepository extends JpaRepository<ParticipationRequest, Long> {
 
     @Query("select new ru.practicum.requests.dto.ParticipationRequestDto( " +
-            "pr.id, pr.event.id, pr.created, pr.requesterId, pr.status) " +
+            "pr.id, pr.event.id, pr.created, pr.requester.id, pr.status) " +
             "from ParticipationRequest as pr " +
-            "where pr.requesterId = :requesterId")
-    List<ParticipationRequestDto> findAllByRequester(Long requesterId);
+            "where pr.requester = :requester")
+    List<ParticipationRequestDto> findAllByRequester(User requester);
 
     Long countAllByEventAndStatus(Event event, ParticipationRequestStatus status);
 

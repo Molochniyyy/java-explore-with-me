@@ -27,12 +27,14 @@ public class ParticipationRequest {
     Event event;
     @CreationTimestamp
     LocalDateTime created;
-    Long requesterId;
+    @ManyToOne
+    @JoinColumn(name = "requester_id", nullable = false)
+    User requester;
     @Enumerated(EnumType.STRING)
     ParticipationRequestStatus status;
 
     public ParticipationRequest(User requester, Event event) {
-        this.requesterId = requester.getId();
+        this.requester = requester;
         this.event = event;
         if (event.getRequestModeration()) {
             status = ParticipationRequestStatus.PENDING;

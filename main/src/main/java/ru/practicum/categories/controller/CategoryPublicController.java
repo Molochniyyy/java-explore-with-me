@@ -29,7 +29,7 @@ public class CategoryPublicController {
                                                        Integer fromElement,
                                                        @Positive @RequestParam(defaultValue = "10") Integer size,
                                                        HttpServletRequest request) {
-        log.info("{}", ControllerLog.createUrlInfo(request));
+        log.info("\n\n{}\n", ControllerLog.createUrlInfo(request));
         List<CategoryDto> result = service.getCategories(fromElement, size);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
@@ -37,7 +37,7 @@ public class CategoryPublicController {
     @GetMapping(path = "/{catId}")
     ResponseEntity<CategoryDto> getCategoryById(@PathVariable Long catId,
                                                 HttpServletRequest request) {
-        log.info("{}", ControllerLog.createUrlInfo(request));
+        log.info("\n\n{}\n", ControllerLog.createUrlInfo(request));
         CategoryDto result = service.getCategoryById(catId);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }

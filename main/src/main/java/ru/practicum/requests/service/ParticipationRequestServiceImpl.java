@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.events.model.Event;
 import ru.practicum.events.model.EventState;
 import ru.practicum.events.repository.EventRepository;
+import ru.practicum.exceptions.ConflictException;
 import ru.practicum.exceptions.NotFoundException;
 import ru.practicum.exceptions.ValidationException;
 import ru.practicum.requests.dto.ParticipationRequestDto;
@@ -33,7 +34,7 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
     public List<ParticipationRequestDto> getAllRequestsOfUser(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(
                 () -> new NotFoundException("Пользователь не найден"));
-        return requestRepository.findAllByRequester(user.getId());
+        return requestRepository.findAllByRequester(user);
     }
 
     @Transactional
@@ -54,7 +55,7 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
     public ParticipationRequestDto cancelRequest(Long userId, Long requestId) {
         ParticipationRequest participationRequest = requestRepository.findById(requestId).orElseThrow(
                 () -> new NotFoundException("Запрос не найден или недоступен"));
-        if (!userId.equals(participationRequest.getRequesterId())) {
+        if (!userId.equals(participationRequest.getRequester().getId())) {
             throw new ValidationException("Отменить можно только свой запрос");
         }
         participationRequest.setStatus(ParticipationRequestStatus.CANCELED);
@@ -64,10 +65,10 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
 
     private void validateRequest(Long requesterId, Event event) {
         if (Objects.equals(requesterId, event.getInitiator().getId())) {
-            throw new ValidationException("Ошибка. Инициатор события не может делать запрос на участие в своём событии");
+            throw new ConflictException("Ошибка. Инициатор события не может делать запрос на участие в своём событии");
         }
         if (!Objects.equals(event.getState(), EventState.PUBLISHED)) {
-            throw new ValidationException("Ошибка. Нельзя оставлять запросы на участие в неопубликованных событиях");
+            throw new ConflictException("Ошибка. Нельзя оставлять запросы на участие в неопубликованных событиях");
         }
         // если у события отсутствует ограничение на количество участников (==0), то проверки завершены
         if (Objects.equals(event.getParticipantLimit(), 0L)) {
@@ -77,7 +78,7 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
         Long confirmedRequests = requestRepository.countAllByEventAndStatus(event,
                 ParticipationRequestStatus.CONFIRMED);
         if ((event.getParticipantLimit() - confirmedRequests) <= 0L) {
-            throw new ValidationException("Ошибка добавления запроса на участие. У события уже заполнен лимит участия");
+            throw new ConflictException("Ошибка добавления запроса на участие. У события уже заполнен лимит участия");
         }
     }
 }

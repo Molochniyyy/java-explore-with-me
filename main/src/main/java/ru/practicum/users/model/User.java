@@ -19,8 +19,10 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
+    @Column(nullable = false, length = 40, unique = true)
     String name;
     @Email(message = "email должен быть корректным")
+    @Column(nullable = false, length = 40, unique = true)
     String email;
 
     @Override

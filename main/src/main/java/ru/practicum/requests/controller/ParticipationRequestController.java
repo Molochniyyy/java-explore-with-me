@@ -25,16 +25,16 @@ public class ParticipationRequestController {
     @GetMapping
     ResponseEntity<List<ParticipationRequestDto>> getPartRequestsByUser(@PathVariable Long requesterId,
                                                                         HttpServletRequest request) {
-        log.info("{}", ControllerLog.createUrlInfo(request));
+        log.info("\n\n{}\n", ControllerLog.createUrlInfo(request));
         List<ParticipationRequestDto> result = service.getAllRequestsOfUser(requesterId);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     @PostMapping
-    ResponseEntity<ParticipationRequestDto> savePartRequest(@PathVariable Long requesterId,
-                                                            @RequestParam Long eventId,
-                                                            HttpServletRequest request) {
-        log.info("{}", ControllerLog.createUrlInfo(request));
+    ResponseEntity<ParticipationRequestDto> addRequest(@PathVariable Long requesterId,
+                                                       @RequestParam Long eventId,
+                                                       HttpServletRequest request) {
+        log.info("\n\n{}\n", ControllerLog.createUrlInfo(request));
         ParticipationRequestDto result = service.addRequest(requesterId, eventId);
         return new ResponseEntity<>(result, HttpStatus.CREATED);
     }
@@ -43,7 +43,7 @@ public class ParticipationRequestController {
     ResponseEntity<ParticipationRequestDto> cancelPartRequest(@PathVariable Long requesterId,
                                                               @PathVariable Long requestId,
                                                               HttpServletRequest request) {
-        log.info("{}", ControllerLog.createUrlInfo(request));
+        log.info("\n\n{}\n", ControllerLog.createUrlInfo(request));
         ParticipationRequestDto result = service.cancelRequest(requesterId, requestId);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }

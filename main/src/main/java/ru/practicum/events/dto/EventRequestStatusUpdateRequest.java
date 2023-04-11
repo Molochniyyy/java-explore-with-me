@@ -5,12 +5,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.practicum.requests.model.ParticipationRequestStatus;
 
-import java.util.Collection;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class EventRequestStatusUpdateRequest {
-    Collection<Long> requestsIds;
+    List<Long> requestIds;
     ParticipationRequestStatus status;
 }
