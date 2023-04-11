@@ -12,9 +12,6 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://stats-db:5432/postgres
       - SPRING_DATASOURCE_USER=postgres
       - SPRING_DATASOURCE_PASSWORD=postgres
-      - DB_NAME=postgres
-      - DB_HOST=stats-db
-        DB_PORT=5432
 
   stats-db:
     image: postgres:14.6
