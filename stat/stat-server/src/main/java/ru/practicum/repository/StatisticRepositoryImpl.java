@@ -17,8 +17,9 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @Repository
-public class StatisticRepositoryImpl implements StatisticRepositoryOwn{
+public class StatisticRepositoryImpl implements StatisticRepositoryOwn {
     private final EntityManager entityManager;
+
     @Override
     public List<ViewStatsDto> findAllWithHits(LocalDateTime startTime, LocalDateTime endTime, List<String> uris, Boolean unique) {
         // подготовливаем основу для запроса
