@@ -1,4 +1,5 @@
-FROM amazoncorretto:11
-ENV JAVA_TOOL_OPTIONS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8081
-COPY target/*.jar app.jar
+FROM bellsoft/liberica-openjdk-alpine-musl:11
+ENV TZ=Europe/Podgorica
+ARG JAR_FILE=target/*.jar
+COPY ${JAR_FILE} app.jar
 ENTRYPOINT ["java","-jar","/app.jar"]
