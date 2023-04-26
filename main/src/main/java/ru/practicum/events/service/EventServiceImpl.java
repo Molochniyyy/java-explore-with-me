@@ -180,10 +180,13 @@ public class EventServiceImpl implements EventService {
                                          Integer from, Integer size, String ip) {
         JPAQueryFactory factory = new JPAQueryFactory(entityManager);
         QEvent qEvent = QEvent.event;
+
         JPAQuery<Event> query = factory.selectFrom(qEvent)
                 .where(qEvent.state.eq(EventState.PUBLISHED));
+
         addDates(rangeStart, rangeEnd, query, qEvent);
         addTextCategoriesAndPaid(text, categories, paid, query, qEvent);
+
         if (sort != null && sort.equals(EventSort.EVENT_DATE)) {
             query.orderBy(qEvent.eventDate.asc());
         }

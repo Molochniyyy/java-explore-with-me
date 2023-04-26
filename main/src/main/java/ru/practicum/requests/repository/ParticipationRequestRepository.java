@@ -2,6 +2,7 @@ package ru.practicum.requests.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ru.practicum.events.model.Event;
 import ru.practicum.requests.dto.ParticipationRequestDto;
@@ -18,7 +19,7 @@ public interface ParticipationRequestRepository extends JpaRepository<Participat
             "pr.id, pr.event.id, pr.created, pr.requester.id, pr.status) " +
             "from ParticipationRequest as pr " +
             "where pr.requester = :requester")
-    List<ParticipationRequestDto> findAllByRequester(User requester);
+    List<ParticipationRequestDto> findAllByRequester(@Param("requester") User requester);
 
     Long countAllByEventAndStatus(Event event, ParticipationRequestStatus status);
 

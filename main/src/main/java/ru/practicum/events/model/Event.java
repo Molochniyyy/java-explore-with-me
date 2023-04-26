@@ -55,6 +55,7 @@ public class Event {
     Long participantLimit;
     LocalDateTime publishedOn;
     Boolean requestModeration;
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 100)
     EventState state;
     @Column(nullable = false, length = 200)
