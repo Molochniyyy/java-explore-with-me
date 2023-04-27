@@ -1,6 +1,7 @@
 package ru.practicum.compilations.model;
 
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 import org.hibernate.Hibernate;
 import ru.practicum.events.model.Event;
 
@@ -24,6 +25,7 @@ import java.util.Objects;
         }
 )
 @Entity
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Table(name = "compilations")
 @AllArgsConstructor
 @NoArgsConstructor

@@ -24,7 +24,7 @@ public class CategoryAdminController {
     private final CategoryService service;
 
     @PostMapping
-    ResponseEntity<CategoryDto> saveCategory(@Validated({Create.class}) @RequestBody NewCategoryDto categoryDto,
+    public ResponseEntity<CategoryDto> saveCategory(@Validated({Create.class}) @RequestBody NewCategoryDto categoryDto,
                                              HttpServletRequest request) {
         log.info("\n\n{}\n", ControllerLog.createUrlInfo(request));
         CategoryDto result = service.addCategory(categoryDto);
@@ -32,7 +32,7 @@ public class CategoryAdminController {
     }
 
     @PatchMapping(path = "/{catId}")
-    ResponseEntity<CategoryDto> updateCategory(@PathVariable Long catId,
+    public ResponseEntity<CategoryDto> updateCategory(@PathVariable Long catId,
                                                @Validated({Update.class}) @RequestBody CategoryDto categoryDto,
                                                HttpServletRequest request) {
         log.info("\n\n{}\n", ControllerLog.createUrlInfo(request));
@@ -41,7 +41,7 @@ public class CategoryAdminController {
     }
 
     @DeleteMapping(path = "/{catId}")
-    ResponseEntity<Void> deleteCategory(@PathVariable Long catId,
+    public ResponseEntity<Void> deleteCategory(@PathVariable Long catId,
                                         HttpServletRequest request) {
         log.info("\n\n{}\n", ControllerLog.createUrlInfo(request));
         service.deleteCategory(catId);

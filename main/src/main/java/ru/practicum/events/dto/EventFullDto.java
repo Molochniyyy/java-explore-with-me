@@ -1,9 +1,7 @@
 package ru.practicum.events.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 import ru.practicum.categories.dto.CategoryDto;
 import ru.practicum.events.model.EventState;
 import ru.practicum.events.model.Location;
@@ -15,6 +13,7 @@ import javax.validation.constraints.PositiveOrZero;
 import java.time.LocalDateTime;
 
 @Data
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor

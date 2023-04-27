@@ -1,6 +1,7 @@
 package ru.practicum.users.model;
 
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 import org.hibernate.Hibernate;
 
 import javax.persistence.*;
@@ -8,6 +9,7 @@ import javax.validation.constraints.Email;
 import java.util.Objects;
 
 @Entity
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Getter
 @Setter
 @ToString

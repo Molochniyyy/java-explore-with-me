@@ -1,6 +1,7 @@
 package ru.practicum.categories.model;
 
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 import org.hibernate.Hibernate;
 
 import javax.persistence.*;
@@ -8,6 +9,7 @@ import java.util.Objects;
 
 @Entity
 @Builder
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Table(name = "categories")
 @Getter
 @Setter

@@ -1,14 +1,13 @@
 package ru.practicum.users.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 import ru.practicum.utils.Create;
 
 import javax.validation.constraints.NotNull;
 
 @Data
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

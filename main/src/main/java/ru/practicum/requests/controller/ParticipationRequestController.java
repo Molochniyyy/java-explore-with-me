@@ -23,7 +23,7 @@ public class ParticipationRequestController {
     private final ParticipationRequestService service;
 
     @GetMapping
-    ResponseEntity<List<ParticipationRequestDto>> getPartRequestsByUser(@PathVariable Long requesterId,
+    public ResponseEntity<List<ParticipationRequestDto>> getPartRequestsByUser(@PathVariable Long requesterId,
                                                                         HttpServletRequest request) {
         log.info("\n\n{}\n", ControllerLog.createUrlInfo(request));
         List<ParticipationRequestDto> result = service.getAllRequestsOfUser(requesterId);
@@ -31,7 +31,7 @@ public class ParticipationRequestController {
     }
 
     @PostMapping
-    ResponseEntity<ParticipationRequestDto> addRequest(@PathVariable Long requesterId,
+    public ResponseEntity<ParticipationRequestDto> addRequest(@PathVariable Long requesterId,
                                                        @RequestParam Long eventId,
                                                        HttpServletRequest request) {
         log.info("\n\n{}\n", ControllerLog.createUrlInfo(request));
@@ -40,7 +40,7 @@ public class ParticipationRequestController {
     }
 
     @PatchMapping(path = "/{requestId}/cancel")
-    ResponseEntity<ParticipationRequestDto> cancelPartRequest(@PathVariable Long requesterId,
+    public ResponseEntity<ParticipationRequestDto> cancelPartRequest(@PathVariable Long requesterId,
                                                               @PathVariable Long requestId,
                                                               HttpServletRequest request) {
         log.info("\n\n{}\n", ControllerLog.createUrlInfo(request));

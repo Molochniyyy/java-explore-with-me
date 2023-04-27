@@ -25,7 +25,7 @@ public class CategoryPublicController {
     private final CategoryService service;
 
     @GetMapping
-    ResponseEntity<List<CategoryDto>> getAllCategories(@PositiveOrZero @RequestParam(name = "from", defaultValue = "0")
+    public ResponseEntity<List<CategoryDto>> getAllCategories(@PositiveOrZero @RequestParam(name = "from", defaultValue = "0")
                                                        Integer fromElement,
                                                        @Positive @RequestParam(defaultValue = "10") Integer size,
                                                        HttpServletRequest request) {
@@ -35,7 +35,7 @@ public class CategoryPublicController {
     }
 
     @GetMapping(path = "/{catId}")
-    ResponseEntity<CategoryDto> getCategoryById(@PathVariable Long catId,
+    public ResponseEntity<CategoryDto> getCategoryById(@PathVariable Long catId,
                                                 HttpServletRequest request) {
         log.info("\n\n{}\n", ControllerLog.createUrlInfo(request));
         CategoryDto result = service.getCategoryById(catId);

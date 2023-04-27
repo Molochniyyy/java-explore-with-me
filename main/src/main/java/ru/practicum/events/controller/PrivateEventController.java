@@ -24,7 +24,7 @@ public class PrivateEventController {
     private final EventService service;
 
     @GetMapping(path = "/{eventId}")
-    ResponseEntity<EventFullDto> getEventById(@PathVariable Long initiatorId,
+    public ResponseEntity<EventFullDto> getEventById(@PathVariable Long initiatorId,
                                               @PathVariable Long eventId,
                                               HttpServletRequest request) {
         log.info("\n\n{}\n", ControllerLog.createUrlInfo(request));
@@ -33,7 +33,7 @@ public class PrivateEventController {
     }
 
     @GetMapping
-    ResponseEntity<List<EventShortDto>> getEventsByUser(@PathVariable Long initiatorId,
+    public ResponseEntity<List<EventShortDto>> getEventsByUser(@PathVariable Long initiatorId,
                                                         @RequestParam(defaultValue = "0") int from,
                                                         @RequestParam(defaultValue = "10") int size,
                                                         HttpServletRequest request) {
@@ -43,7 +43,7 @@ public class PrivateEventController {
     }
 
     @PostMapping
-    ResponseEntity<EventFullDto> saveEvent(@PathVariable Long initiatorId,
+    public ResponseEntity<EventFullDto> saveEvent(@PathVariable Long initiatorId,
                                            @Validated({Create.class}) @RequestBody NewEventDto newEventDto,
                                            HttpServletRequest request) {
         log.info("\n\n{}\n", ControllerLog.createUrlInfo(request));
@@ -52,7 +52,7 @@ public class PrivateEventController {
     }
 
     @PatchMapping(path = "/{eventId}")
-    ResponseEntity<EventFullDto> changeEvent(@PathVariable Long initiatorId, @PathVariable Long eventId,
+    public ResponseEntity<EventFullDto> changeEvent(@PathVariable Long initiatorId, @PathVariable Long eventId,
                                              @RequestBody UpdateEventUserRequest updateRequestDto) {
         log.info("\n\nПолучен запрос к эндпоинту: PATCH /users/{}/events/{}/\n" +
                 "Создан объект из тела запроса:\n'{}'", initiatorId, eventId, updateRequestDto);
@@ -61,7 +61,7 @@ public class PrivateEventController {
     }
 
     @GetMapping(path = "/{eventId}/requests")
-    ResponseEntity<List<ParticipationRequestDto>> getRequestsOfEvent(@PathVariable Long initiatorId,
+    public ResponseEntity<List<ParticipationRequestDto>> getRequestsOfEvent(@PathVariable Long initiatorId,
                                                                      @PathVariable Long eventId,
                                                                      HttpServletRequest request) {
         log.info("\n\n{}\n", ControllerLog.createUrlInfo(request));
@@ -70,7 +70,7 @@ public class PrivateEventController {
     }
 
     @PatchMapping(path = "/{eventId}/requests")
-    ResponseEntity<EventRequestStatusUpdateResult> changeStatusOfRequestsOfEvent(
+    public ResponseEntity<EventRequestStatusUpdateResult> changeStatusOfRequestsOfEvent(
             @PathVariable Long initiatorId,
             @PathVariable Long eventId,
             @RequestBody EventRequestStatusUpdateRequest updateRequestDto,

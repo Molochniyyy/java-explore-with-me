@@ -24,7 +24,7 @@ public class AdminCompilationsController {
     private final CompilationService service;
 
     @PostMapping
-    ResponseEntity<CompilationDto> saveCompilation(
+    public ResponseEntity<CompilationDto> saveCompilation(
             @Validated({Create.class}) @RequestBody NewCompilationDto newCompilationDto,
             HttpServletRequest request) {
         log.info("\n\n{}\n", ControllerLog.createUrlInfo(request));
@@ -33,7 +33,7 @@ public class AdminCompilationsController {
     }
 
     @PatchMapping(path = "/{compId}")
-    ResponseEntity<CompilationDto> updateCompilation(
+    public ResponseEntity<CompilationDto> updateCompilation(
             @PathVariable Long compId,
             @RequestBody UpdateCompilationRequest updateCompilationRequest,
             HttpServletRequest request) {
@@ -43,7 +43,7 @@ public class AdminCompilationsController {
     }
 
     @DeleteMapping(path = "/{compId}")
-    ResponseEntity<Void> deleteCompilation(@PathVariable Long compId,
+    public ResponseEntity<Void> deleteCompilation(@PathVariable Long compId,
                                            HttpServletRequest request) {
         log.info("\n\n{}\n", ControllerLog.createUrlInfo(request));
         service.deleteCompilation(compId);

@@ -1,6 +1,7 @@
 package ru.practicum.requests.model;
 
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.CreationTimestamp;
 import ru.practicum.events.model.Event;
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Entity
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Table(name = "REQUESTS")
 @Getter
 @Setter

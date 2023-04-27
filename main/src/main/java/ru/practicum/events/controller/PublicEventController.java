@@ -26,14 +26,14 @@ public class PublicEventController {
     private final EventService service;
 
     @GetMapping(path = "{eventId}")
-    ResponseEntity<EventFullDto> getEventById(@PathVariable Long eventId, HttpServletRequest request) {
+    public ResponseEntity<EventFullDto> getEventById(@PathVariable Long eventId, HttpServletRequest request) {
         log.info("\n\n{}\n", ControllerLog.createUrlInfo(request));
         EventFullDto result = service.getFullEvent(eventId, request.getRemoteAddr());
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     @GetMapping
-    ResponseEntity<List<EventShortDto>> getEvents(
+    public ResponseEntity<List<EventShortDto>> getEvents(
             @RequestParam(required = false) String text,
             @RequestParam(required = false) List<Long> categories,
             @RequestParam(required = false) Boolean paid,

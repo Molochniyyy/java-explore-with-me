@@ -2,6 +2,7 @@ package ru.practicum.events.model;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 import org.hibernate.Hibernate;
 import ru.practicum.categories.model.Category;
 import ru.practicum.requests.model.ParticipationRequest;
@@ -21,6 +22,7 @@ import java.util.Objects;
         }
 )
 @Entity
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Table(name = "events")
 @Getter
 @Setter

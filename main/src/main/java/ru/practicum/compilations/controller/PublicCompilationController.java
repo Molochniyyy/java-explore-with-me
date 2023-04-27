@@ -24,7 +24,7 @@ public class PublicCompilationController {
     private final CompilationService service;
 
     @GetMapping
-    ResponseEntity<List<CompilationDto>> getAllCompilations(
+    public ResponseEntity<List<CompilationDto>> getAllCompilations(
             @RequestParam(defaultValue = "false") Boolean pinned,
             @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer fromElement,
             @Positive @RequestParam(defaultValue = "10") Integer size,
@@ -35,7 +35,7 @@ public class PublicCompilationController {
     }
 
     @GetMapping(path = "/{compId}")
-    ResponseEntity<CompilationDto> getCompilationById(@PathVariable Long compId,
+    public ResponseEntity<CompilationDto> getCompilationById(@PathVariable Long compId,
                                                       HttpServletRequest request) {
         log.info("\n\n{}\n", ControllerLog.createUrlInfo(request));
         CompilationDto result = service.findCompilationById(compId);

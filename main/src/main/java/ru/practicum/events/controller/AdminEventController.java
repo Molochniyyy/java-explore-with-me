@@ -26,7 +26,7 @@ public class AdminEventController {
     private final EventService service;
 
     @GetMapping
-    ResponseEntity<List<EventFullDto>> getEvents(
+    public ResponseEntity<List<EventFullDto>> getEvents(
             @RequestParam(required = false) List<Long> users,
             @RequestParam(required = false) List<Long> categories,
             @RequestParam(required = false) List<EventState> states,
@@ -42,7 +42,7 @@ public class AdminEventController {
     }
 
     @PatchMapping(path = "/{eventId}")
-    ResponseEntity<EventFullDto> changeEvent(@PathVariable Long eventId,
+    public ResponseEntity<EventFullDto> changeEvent(@PathVariable Long eventId,
                                              @Validated({Update.class})
                                              @RequestBody UpdateEventAdminRequest updateEventAdminRequest,
                                              HttpServletRequest request) {
