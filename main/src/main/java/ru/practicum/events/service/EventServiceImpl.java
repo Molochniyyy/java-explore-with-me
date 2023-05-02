@@ -236,6 +236,11 @@ public class EventServiceImpl implements EventService {
         return eventMapper.toEventFullDto(changedEvent);
     }
 
+    @Override
+    public Event getById(Long id) {
+        return eventRepository.findById(id).orElseThrow(() -> new NotFoundException("Событие не найдено"));
+    }
+
     @Transactional
     @Override
     public EventRequestStatusUpdateResult changeRequestStatus(Long userId, Long eventId,
