@@ -13,6 +13,5 @@ import java.util.List;
 public interface CommentMapper {
     Comment toEntity(CommentRequest commentRequest);
     CommentResponse toResponse(Comment comment);
-
     List<CommentResponse> toResponses(List<Comment> comments);
 }
