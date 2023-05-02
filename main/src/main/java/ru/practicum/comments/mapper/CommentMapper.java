@@ -12,6 +12,8 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface CommentMapper {
     Comment toEntity(CommentRequest commentRequest);
+
     CommentResponse toResponse(Comment comment);
+
     List<CommentResponse> toResponses(List<Comment> comments);
 }
