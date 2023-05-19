@@ -5,6 +5,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.Hibernate;
 import ru.practicum.categories.model.Category;
+import ru.practicum.comments.model.Comment;
 import ru.practicum.requests.model.ParticipationRequest;
 import ru.practicum.users.model.User;
 
@@ -43,6 +44,10 @@ public class Event {
     @JsonManagedReference
     @ToString.Exclude
     List<ParticipationRequest> requests;
+    @OneToMany(mappedBy = "event", fetch = FetchType.LAZY)
+    @JsonManagedReference
+    @ToString.Exclude
+    List<Comment> comments;
     LocalDateTime createdOn;
     @Column(nullable = false, length = 10000)
     String description;

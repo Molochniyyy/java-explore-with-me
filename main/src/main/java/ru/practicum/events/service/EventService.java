@@ -2,6 +2,7 @@ package ru.practicum.events.service;
 
 import org.springframework.stereotype.Service;
 import ru.practicum.events.dto.*;
+import ru.practicum.events.model.Event;
 import ru.practicum.events.model.EventSort;
 import ru.practicum.events.model.EventState;
 import ru.practicum.requests.dto.ParticipationRequestDto;
@@ -46,4 +47,6 @@ public interface EventService {
     EventFullDto getFullEvent(Long eventId, String ip);
 
     EventFullDto changeEventByAdmin(Long eventId, UpdateEventAdminRequest eventAdminRequest);
+
+    Event getById(Long id);
 }
